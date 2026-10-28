@@ -12,11 +12,8 @@ EditorBuildSettings:
     path: Assets/Scenes/GameScene.unity
     guid: 74ef4f8a6f0bdcd49aa10c1a83ea5aa2
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 00000000000000000000000000000000
-  - enabled: 1
-    path: Assets/Scenes/Level2Scene.unity
-    guid: ce357cb2c6e774a45b1de7cba858e2be
+    path: Assets/Toon Gas Station/Scenes/Level1MapGas.unity
+    guid: 40ef6e60490d68541971945758777f58
   - enabled: 1
     path: Assets/Scenes/Level2Scene.unity
     guid: ce357cb2c6e774a45b1de7cba858e2be

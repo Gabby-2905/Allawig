@@ -12,20 +12,21 @@ public class GameHUD : MonoBehaviour
     public TextMeshProUGUI healthText;
 
     [Header("Inventory Slots")]
-    public Image[] inventorySlots = new Image[4];
-    public TextMeshProUGUI[] inventoryLabels = new TextMeshProUGUI[4];
+    public Image[] inventorySlots = new Image[8];
+    public TextMeshProUGUI[] inventoryLabels = new TextMeshProUGUI[8];
 
     // Simple inventory data
-    private string[] itemNames = new string[4];
-    private Color[] slotColors = new Color[4];
+    private string[] itemNames = new string[8];
+    private Color[] slotColors = new Color[8];
 
     void Start()
     {
-        // Initialize empty slots
-        for (int i = 0; i < 4; i++)
+        // Load persisted inventory (or initialize empty)
+        for (int i = 0; i < 8; i++)
         {
-            itemNames[i] = "";
-            slotColors[i] = new Color(0.1f, 0.1f, 0.1f, 0.85f);
+            var (name, color) = GameSaveManager.LoadInventorySlot(i);
+            itemNames[i]  = name;
+            slotColors[i] = color;
         }
         RefreshInventoryUI();
     }
@@ -44,15 +45,25 @@ public class GameHUD : MonoBehaviour
 
     public void AddItem(int slot, string itemName, Color color)
     {
-        if (slot < 0 || slot >= 4) return;
+        if (slot < 0 || slot >= 8) return;
         itemNames[slot] = itemName;
         slotColors[slot] = color;
+        GameSaveManager.SaveInventorySlot(slot, itemName, color);
+        RefreshInventoryUI();
+    }
+
+    public void RemoveItem(int slot)
+    {
+        if (slot < 0 || slot >= 8) return;
+        itemNames[slot] = "";
+        slotColors[slot] = new Color(0.1f, 0.1f, 0.1f, 0.85f);
+        GameSaveManager.SaveInventorySlot(slot, "", slotColors[slot]);
         RefreshInventoryUI();
     }
 
     void RefreshInventoryUI()
     {
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 8; i++)
         {
             if (inventorySlots[i] != null)
                 inventorySlots[i].color = slotColors[i];

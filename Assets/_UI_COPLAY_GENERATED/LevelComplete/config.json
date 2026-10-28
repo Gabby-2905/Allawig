@@ -1,0 +1,148 @@
+{
+  "controls": [
+    {
+      "name": "LevelCompleteCanvas",
+      "position": { "x": 0, "y": 0 },
+      "size": { "width": 795, "height": 547 },
+      "type": "Image",
+      "backgroundType": "None",
+      "text": ""
+    },
+    {
+      "name": "Overlay",
+      "position": { "x": 0, "y": 0 },
+      "size": { "width": 795, "height": 547 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "Panel",
+      "position": { "x": 0, "y": 0 },
+      "size": { "width": 720, "height": 480 },
+      "type": "Image",
+      "backgroundType": "Sliced",
+      "text": ""
+    },
+    {
+      "name": "TopStripe",
+      "position": { "x": 0, "y": 220 },
+      "size": { "width": 720, "height": 22 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "BotStripe",
+      "position": { "x": 0, "y": -220 },
+      "size": { "width": 720, "height": 22 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "BoltTL",
+      "position": { "x": -340, "y": 215 },
+      "size": { "width": 20, "height": 20 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "BoltTR",
+      "position": { "x": 340, "y": 215 },
+      "size": { "width": 20, "height": 20 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "BoltBL",
+      "position": { "x": -340, "y": -215 },
+      "size": { "width": 20, "height": 20 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "BoltBR",
+      "position": { "x": 340, "y": -215 },
+      "size": { "width": 20, "height": 20 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "StarCenter",
+      "position": { "x": 0, "y": 120 },
+      "size": { "width": 130, "height": 130 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "StarLeft",
+      "position": { "x": -155, "y": 100 },
+      "size": { "width": 110, "height": 110 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "StarRight",
+      "position": { "x": 155, "y": 100 },
+      "size": { "width": 110, "height": 110 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "LevelCompletedText",
+      "position": { "x": 0, "y": 10 },
+      "size": { "width": 600, "height": 60 },
+      "type": "Text",
+      "backgroundType": "None",
+      "text": "LEVEL COMPLETED"
+    },
+    {
+      "name": "ObjectivePanel",
+      "position": { "x": 0, "y": -60 },
+      "size": { "width": 500, "height": 55 },
+      "type": "Image",
+      "backgroundType": "Sliced",
+      "text": ""
+    },
+    {
+      "name": "ObjectiveIcon",
+      "position": { "x": -210, "y": 0 },
+      "size": { "width": 30, "height": 30 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "ObjectiveText",
+      "position": { "x": 20, "y": 0 },
+      "size": { "width": 380, "height": 40 },
+      "type": "Text",
+      "backgroundType": "None",
+      "text": "PRIMARY OBJECTIVE:  8/8"
+    },
+    {
+      "name": "BackToMainMenuButton",
+      "position": { "x": -145, "y": -155 },
+      "size": { "width": 250, "height": 60 },
+      "type": "Button",
+      "backgroundType": "Sliced",
+      "text": "BACK TO MAIN MENU"
+    },
+    {
+      "name": "NextSectorButton",
+      "position": { "x": 145, "y": -155 },
+      "size": { "width": 250, "height": 60 },
+      "type": "Button",
+      "backgroundType": "Sliced",
+      "text": "NEXT SECTOR →"
+    }
+  ]
+}

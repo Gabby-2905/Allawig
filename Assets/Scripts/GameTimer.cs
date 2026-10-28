@@ -10,7 +10,7 @@ using System.Collections;
 public class GameTimer : MonoBehaviour
 {
     [Header("Settings")]
-    public float totalTime = 90f;   // 1 minute 30 seconds
+    public float totalTime = 180f;   // 1 minute 30 seconds
 
     [Header("UI References")]
     public TextMeshProUGUI timerText;

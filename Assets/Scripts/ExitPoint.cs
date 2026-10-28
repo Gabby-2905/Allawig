@@ -6,7 +6,7 @@ using TMPro;
 /// <summary>
 /// Place this on a trigger collider in the scene.
 /// When the player enters it, a short "hold to exit" prompt appears
-/// and then the next level is loaded.
+/// and then the Level Complete screen is shown (or the next level is loaded).
 /// </summary>
 public class ExitPoint : MonoBehaviour
 {
@@ -17,6 +17,17 @@ public class ExitPoint : MonoBehaviour
     [Header("Hold-to-Exit Settings")]
     [Tooltip("How long the player must stand in the zone before exiting (0 = instant).")]
     public float holdDuration = 2f;
+
+    [Header("Level Complete Screen")]
+    [Tooltip("If true, shows the Level Complete UI instead of loading the next scene directly.")]
+    public bool showLevelCompleteUI = true;
+    [Tooltip("Stars to award on the Level Complete screen (1-3).")]
+    [Range(1, 3)]
+    public int starsEarned = 2;
+    [Tooltip("Current objective count shown on the Level Complete screen.")]
+    public int objectiveCurrent = 8;
+    [Tooltip("Total objective count shown on the Level Complete screen.")]
+    public int objectiveTotal = 8;
 
     [Header("UI")]
     public GameObject exitPromptUI;          // optional world-space or screen-space panel
@@ -52,7 +63,7 @@ public class ExitPoint : MonoBehaviour
         if (holdTimer >= holdDuration)
         {
             loading = true;
-            StartCoroutine(LoadNextLevel());
+            StartCoroutine(TriggerExit());
         }
     }
 
@@ -97,15 +108,27 @@ public class ExitPoint : MonoBehaviour
         }
     }
 
-    IEnumerator LoadNextLevel()
+    IEnumerator TriggerExit()
     {
         // Brief pause so the player sees the bar fill
         yield return new WaitForSeconds(0.3f);
 
-        // Reset timescale in case it was paused
-        Time.timeScale = 1f;
+        // Hide the prompt
+        if (exitPromptUI != null)
+            exitPromptUI.SetActive(false);
 
-        SceneManager.LoadScene(nextSceneName);
+        if (showLevelCompleteUI && LevelCompleteManager.Instance != null)
+        {
+            // Show Level Complete screen
+            LevelCompleteManager.Instance.nextSceneName = nextSceneName;
+            LevelCompleteManager.Instance.Show(starsEarned, objectiveCurrent, objectiveTotal);
+        }
+        else
+        {
+            // Fallback: load next scene directly
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(nextSceneName);
+        }
     }
 
     // ── Editor gizmo ───────────────────────────────────────────────────────
