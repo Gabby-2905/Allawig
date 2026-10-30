@@ -1,0 +1,116 @@
+{
+  "controls": [
+    {
+      "name": "PauseCanvas",
+      "position": { "x": 0, "y": 0 },
+      "size": { "width": 432, "height": 715 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "PanelBg",
+      "position": { "x": 0, "y": 0 },
+      "size": { "width": 412, "height": 695 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "TopStripe",
+      "position": { "x": 0, "y": 330 },
+      "size": { "width": 412, "height": 18 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "BotStripe",
+      "position": { "x": 0, "y": -330 },
+      "size": { "width": 412, "height": 18 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "TitleText",
+      "position": { "x": 0, "y": 270 },
+      "size": { "width": 380, "height": 55 },
+      "type": "Text",
+      "backgroundType": "None",
+      "text": "SYSTEM PAUSED"
+    },
+    {
+      "name": "SubtitleText",
+      "position": { "x": 0, "y": 225 },
+      "size": { "width": 380, "height": 30 },
+      "type": "Text",
+      "backgroundType": "None",
+      "text": "PRIMARY OBJECTIVE: SURVIVE"
+    },
+    {
+      "name": "ResumeButton",
+      "position": { "x": 0, "y": 145 },
+      "size": { "width": 380, "height": 70 },
+      "type": "Button",
+      "backgroundType": "Sliced",
+      "text": "RESUME"
+    },
+    {
+      "name": "SaveGameButton",
+      "position": { "x": 0, "y": 55 },
+      "size": { "width": 380, "height": 70 },
+      "type": "Button",
+      "backgroundType": "Sliced",
+      "text": "SAVE GAME"
+    },
+    {
+      "name": "SettingsButton",
+      "position": { "x": 0, "y": -35 },
+      "size": { "width": 380, "height": 70 },
+      "type": "Button",
+      "backgroundType": "Sliced",
+      "text": "SETTINGS"
+    },
+    {
+      "name": "ControlsButton",
+      "position": { "x": 0, "y": -125 },
+      "size": { "width": 380, "height": 70 },
+      "type": "Button",
+      "backgroundType": "Sliced",
+      "text": "CONTROLS"
+    },
+    {
+      "name": "MainMenuButton",
+      "position": { "x": 0, "y": -215 },
+      "size": { "width": 380, "height": 70 },
+      "type": "Button",
+      "backgroundType": "Sliced",
+      "text": "MAIN MENU"
+    },
+    {
+      "name": "QuitButton",
+      "position": { "x": 0, "y": -305 },
+      "size": { "width": 380, "height": 70 },
+      "type": "Button",
+      "backgroundType": "Sliced",
+      "text": "QUIT"
+    },
+    {
+      "name": "SecIdText",
+      "position": { "x": -140, "y": -330 },
+      "size": { "width": 160, "height": 24 },
+      "type": "Text",
+      "backgroundType": "None",
+      "text": "SEC-ID: 884-A"
+    },
+    {
+      "name": "BuildText",
+      "position": { "x": 140, "y": -330 },
+      "size": { "width": 160, "height": 24 },
+      "type": "Text",
+      "backgroundType": "None",
+      "text": "BUILD v2.0.8"
+    }
+  ]
+}

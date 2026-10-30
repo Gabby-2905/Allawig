@@ -6,45 +6,36 @@ public class PreviewCanvas
 {
     public static void Execute()
     {
-        // Remove all duplicates, keep only one
-        var all = GameObject.FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        GameObject toKeep = null;
-        foreach (var c in all)
-        {
-            if (c.gameObject.name == "LevelCompleteCanvas")
-            {
-                if (toKeep == null)
-                {
-                    toKeep = c.gameObject;
-                }
-                else
-                {
-                    GameObject.DestroyImmediate(c.gameObject);
-                }
-            }
-        }
-
-        if (toKeep != null)
-        {
-            toKeep.SetActive(true);
-            Debug.Log("[PreviewCanvas] Activated: " + toKeep.name + " children: " + toKeep.transform.childCount);
-        }
-        else
-        {
-            Debug.LogWarning("[PreviewCanvas] LevelCompleteCanvas not found!");
-        }
-
-        EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
+        SetActive("LevelCompleteCanvas", true);
     }
 
     public static void Hide()
     {
-        var all = GameObject.FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        SetActive("LevelCompleteCanvas", false);
+    }
+
+    public static void ShowPause()
+    {
+        SetActive("PauseCanvas", true);
+    }
+
+    public static void ShowInventory()
+    {
+        SetActive("InventoryCanvas", true);
+    }
+
+    public static void HideAll()
+    {
+        SetActive("PauseCanvas", false);
+        SetActive("InventoryCanvas", false);
+    }
+
+    static void SetActive(string name, bool active)
+    {
+        var all = Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include);
         foreach (var c in all)
-        {
-            if (c.gameObject.name == "LevelCompleteCanvas")
-                c.gameObject.SetActive(false);
-        }
+            if (c.gameObject.name == name)
+                c.gameObject.SetActive(active);
         EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
     }
 }
