@@ -1,0 +1,100 @@
+{
+  "controls": [
+    {
+      "name": "InventoryCanvas",
+      "position": { "x": 0, "y": 0 },
+      "size": { "width": 321, "height": 181 },
+      "type": "Image",
+      "backgroundType": "None",
+      "text": ""
+    },
+    {
+      "name": "Overlay",
+      "position": { "x": 0, "y": 0 },
+      "size": { "width": 321, "height": 181 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "InventoryRoot",
+      "position": { "x": 0, "y": 0 },
+      "size": { "width": 321, "height": 181 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "TitleText",
+      "position": { "x": 0, "y": 75 },
+      "size": { "width": 280, "height": 30 },
+      "type": "Text",
+      "backgroundType": "None",
+      "text": "INVENTORY"
+    },
+    {
+      "name": "Slot_1",
+      "position": { "x": -112, "y": 22 },
+      "size": { "width": 68, "height": 60 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "Slot_2",
+      "position": { "x": -37, "y": 22 },
+      "size": { "width": 68, "height": 60 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "Slot_3",
+      "position": { "x": 37, "y": 22 },
+      "size": { "width": 68, "height": 60 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "Slot_4",
+      "position": { "x": 112, "y": 22 },
+      "size": { "width": 68, "height": 60 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "Slot_5",
+      "position": { "x": -112, "y": -42 },
+      "size": { "width": 68, "height": 60 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "Slot_6",
+      "position": { "x": -37, "y": -42 },
+      "size": { "width": 68, "height": 60 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "Slot_7",
+      "position": { "x": 37, "y": -42 },
+      "size": { "width": 68, "height": 60 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    },
+    {
+      "name": "Slot_8",
+      "position": { "x": 112, "y": -42 },
+      "size": { "width": 68, "height": 60 },
+      "type": "Image",
+      "backgroundType": "Simple",
+      "text": ""
+    }
+  ]
+}
