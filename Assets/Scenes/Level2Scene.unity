@@ -138737,6 +138737,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Arnold
       objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 58cdaa754ef4c99429d6a263520eddc1, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 3e4a36fbde6f643439aa5d06d46ca70c, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

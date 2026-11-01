@@ -41,6 +41,7 @@ public class ExitPoint : MonoBehaviour
     private bool playerInside = false;
     private float holdTimer   = 0f;
     private bool  loading     = false;
+    private bool  _locked     = false;
 
     void Start()
     {
@@ -53,9 +54,33 @@ public class ExitPoint : MonoBehaviour
         UpdatePromptText(0f);
     }
 
+    /// <summary>Lock or unlock this exit point.</summary>
+    public void SetLocked(bool locked)
+    {
+        _locked = locked;
+        // Update light color to show locked/unlocked state
+        if (exitLight != null)
+            exitLight.color = locked ? new Color(1f, 0.3f, 0.1f, 1f) : exitColor;
+        // Update prompt if visible
+        if (playerInside && promptText != null)
+            UpdatePromptText(holdTimer);
+    }
+
     void Update()
     {
         if (!playerInside || loading) return;
+        if (_locked)
+        {
+            // Show locked message
+            if (promptText != null)
+            {
+                int needed = LootTaskManager.Instance != null
+                    ? (LootTaskManager.Instance.RequiredLoots - LootTaskManager.Instance.LootCount)
+                    : 0;
+                promptText.text = $"🔒 EXIT LOCKED\nCollect {needed} more loots!";
+            }
+            return;
+        }
 
         holdTimer += Time.deltaTime;
         UpdatePromptText(holdTimer);

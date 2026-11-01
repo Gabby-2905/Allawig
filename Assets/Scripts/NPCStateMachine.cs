@@ -95,12 +95,21 @@ public class NPCStateMachine : MonoBehaviour
         }
 
         _agent.speed = patrolSpeed;
+        StartCoroutine(InitWhenOnNavMesh());
+    }
+
+    System.Collections.IEnumerator InitWhenOnNavMesh()
+    {
+        // Wait until the NavMeshAgent is placed on the NavMesh
+        while (!_agent.isOnNavMesh)
+            yield return null;
         EnterState(currentState);
     }
 
     void Update()
     {
         if (Time.timeScale == 0f) return;
+        if (!_agent.isOnNavMesh) return;
 
         _attackTimer -= Time.deltaTime;
         _stateTimer  -= Time.deltaTime;
@@ -123,6 +132,7 @@ public class NPCStateMachine : MonoBehaviour
     void EnterState(NPCState newState)
     {
         currentState = newState;
+        if (!_agent.isOnNavMesh) return;
 
         switch (newState)
         {
@@ -168,7 +178,7 @@ public class NPCStateMachine : MonoBehaviour
         if (CanHearPlayer())  { EnterState(NPCState.Investigate); return; }
 
         // Advance waypoint
-        if (!_agent.pathPending && _agent.remainingDistance < waypointRadius)
+        if (_agent.isOnNavMesh && !_agent.pathPending && _agent.remainingDistance < waypointRadius)
             SetNextWaypoint();
     }
 
@@ -177,14 +187,14 @@ public class NPCStateMachine : MonoBehaviour
         if (CanSeePlayer()) { EnterState(NPCState.Chase); return; }
 
         // Arrived at heard position – look around then return
-        if (!_agent.pathPending && _agent.remainingDistance < waypointRadius)
+        if (_agent.isOnNavMesh && !_agent.pathPending && _agent.remainingDistance < waypointRadius)
         {
             if (_stateTimer <= 0f)
                 EnterState(NPCState.ReturnToPatrol);
         }
 
         // If we hear the player again, update destination
-        if (CanHearPlayer())
+        if (CanHearPlayer() && _agent.isOnNavMesh)
         {
             _stateTimer = investigateDuration;
             _agent.SetDestination(_lastHeardPos);
@@ -256,7 +266,7 @@ public class NPCStateMachine : MonoBehaviour
         if (CanSeePlayer()) { EnterState(NPCState.Chase);       return; }
         if (CanHearPlayer()) { EnterState(NPCState.Investigate); return; }
 
-        if (!_agent.pathPending && _agent.remainingDistance < waypointRadius)
+        if (_agent.isOnNavMesh && !_agent.pathPending && _agent.remainingDistance < waypointRadius)
             EnterState(NPCState.Patrol);
     }
 
@@ -321,6 +331,7 @@ public class NPCStateMachine : MonoBehaviour
     // ─────────────────────────────────────────────────────────────────────
     void SetNextWaypoint()
     {
+        if (!_agent.isOnNavMesh) return;
         if (patrolWaypoints != null && patrolWaypoints.Length > 0)
         {
             _agent.SetDestination(patrolWaypoints[_waypointIndex].position);

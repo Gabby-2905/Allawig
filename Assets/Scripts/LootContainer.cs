@@ -55,7 +55,10 @@ public class LootContainer : MonoBehaviour
         if (audioSource != null && lootSound != null)
             audioSource.PlayOneShot(lootSound);
 
-        // Log loot notification
+        // Notify task manager
+        if (LootTaskManager.Instance != null)
+            LootTaskManager.Instance.RegisterLoot();
+
         Debug.Log($"[LootContainer] {containerName} has been looted!");
     }
 
