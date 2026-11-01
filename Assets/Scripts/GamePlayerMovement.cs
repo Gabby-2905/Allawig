@@ -3,6 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class GamePlayerMovement : MonoBehaviour
 {
+    
     // ── Movement ──────────────────────────────────────────────────────────
     [Header("Movement")]
     public float walkSpeed     = 3f;
@@ -65,12 +66,21 @@ public class GamePlayerMovement : MonoBehaviour
     private Transform _visual;
 
     private Camera _cam;
+    private Camera _firstPersonCam;
+    public bool firstPersonMode = false;
+    private float verticalVelocity;
+    private float cameraRotationX;
+    public float mouseSensitivity = 2f;
+    public Transform playerCamera;
+    public Camera mainCamera;
+    public Camera firstPersonCamera;
 
     void Awake()
     {
         _cc      = GetComponent<CharacterController>();
         _stamina = maxStamina;
         _cam     = Camera.main;
+        _firstPersonCam = _cam != null && _cam.CompareTag("FirstPersonCamera") ? _cam : null;
 
         if (animator == null)
             animator = GetComponentInChildren<Animator>();
@@ -91,6 +101,57 @@ public class GamePlayerMovement : MonoBehaviour
         HandleCrouch();
         HandleAimAndCombat();
         HandleMovement();
+        HandleCamera();
+
+        if (Input.GetKeyDown("e"))
+        {
+            CollectiblesCollect();
+        }
+        
+
+    }
+
+    void HandleCamera()
+    {
+        // I want to add a feature where if the loot reached the required amount, the player will go to first person camera and the player will be able to shoot. If not, the player will stay in third person camera and will not be able to shoot. I want to add this feature in the Update() method.
+        if (LootTaskManager.Instance != null && LootTaskManager.Instance._exitUnlocked)
+        {
+            if (_firstPersonCam != null)
+                _firstPersonCam.enabled = true;
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+                firstPersonMode = true;  
+                mainCamera.gameObject.SetActive(false); // Disable the main camera
+                firstPersonCamera.gameObject.SetActive(true); // Enable the first-person camera           
+                _cam = _firstPersonCam; // Switch to first-person camera
+            if (_cam != null && _cam != _firstPersonCam)
+                _cam.enabled = false;
+            hasGun = true; // Allow shooting when loot requirement is met
+        }
+        else
+        {
+            if (_firstPersonCam != null)
+                _firstPersonCam.enabled = false;
+            if (_cam != null && _cam != _firstPersonCam)
+                _cam.enabled = true;
+            hasGun = false; // Disable shooting when loot requirement is not met
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  COLLECTIBLE
+    // ─────────────────────────────────────────────────────────────────────
+    void CollectiblesCollect()
+    {
+        // RaycastHit hit;
+        // if (Physics.Raycast(playerCamera.position, playerCamera.forward, out hit, 3f))
+        // {
+        //     Collectible collectibles = hit.transform.GetComponent<Collectible>();
+        //     if (collectibles != null)
+        //     {
+        //         collectibles.Collect();
+        //     }
+        // }
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -213,6 +274,10 @@ public class GamePlayerMovement : MonoBehaviour
     // ─────────────────────────────────────────────────────────────────────
     void HandleMovement()
     {
+        if(!firstPersonMode)
+        {
+
+        
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
@@ -273,6 +338,54 @@ public class GamePlayerMovement : MonoBehaviour
 
         float speed = _isCrouching ? crouchSpeed : (_isSprinting ? runSpeed : walkSpeed);
         _cc.Move((moveDir * speed + _velocity) * Time.deltaTime);
+        }
+        else
+        {
+        // MOUSE LOOK
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
+
+        transform.Rotate(0f, mouseX, 0f);
+
+        cameraRotationX -= mouseY;
+        cameraRotationX = Mathf.Clamp(cameraRotationX, -90f, 90f);
+
+        playerCamera.localRotation =
+            Quaternion.Euler(cameraRotationX, 0f, 0f);
+
+        // MOVEMENT
+        float x = Input.GetAxisRaw("Horizontal");
+        float z = Input.GetAxisRaw("Vertical");
+
+        Vector3 movement =
+            (transform.right * x + transform.forward * z).normalized;
+
+        // GROUND CHECK
+        bool grounded = Physics.CheckSphere(
+            transform.position + Vector3.down * 0.1f,
+            0.2f, LayerMask.GetMask("Ground"));
+
+        if (grounded && verticalVelocity < 0f)
+        {
+            verticalVelocity = -2f;
+        }
+
+        // JUMPING
+        if (grounded && Input.GetKeyDown(KeyCode.Space))
+        {
+            verticalVelocity = Mathf.Sqrt(3f * -_gravity * -1.5f); // jump height of 1.5 units
+        }
+
+        // GRAVITY
+        verticalVelocity += _gravity * Time.deltaTime;
+
+        // APPLY MOVEMENT AND VERTICAL VELOCITY TOGETHER
+        movement.y = verticalVelocity;
+
+        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
+        _cc.Move(movement * currentSpeed * Time.deltaTime);
+
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────

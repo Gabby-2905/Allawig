@@ -24,7 +24,7 @@ public class LootTaskManager : MonoBehaviour
 
     // ── State ──────────────────────────────────────────────────────────────
     private int _lootCount = 0;
-    private bool _exitUnlocked = false;
+    public bool _exitUnlocked = false;
 
     void Awake()
     {
@@ -39,6 +39,23 @@ public class LootTaskManager : MonoBehaviour
             exitPoints = FindObjectsByType<ExitPoint>(FindObjectsSortMode.None);
 
         LockExits();
+        RefreshHUD();
+    }
+
+    /// <summary>Called by Collectible when the player loots it.</summary>
+    public void AddLoot(int lootValue)
+    {
+        if (_exitUnlocked) return; // already done
+
+        _lootCount += lootValue;
+        Debug.Log($"[LootTask] Loots: {_lootCount} / {requiredLoots}");
+
+        if (_lootCount >= requiredLoots)
+        {
+            _exitUnlocked = true;
+            UnlockExits();
+        }
+
         RefreshHUD();
     }
 
