@@ -85,11 +85,20 @@ public class ExitPoint : MonoBehaviour
         holdTimer += Time.deltaTime;
         UpdatePromptText(holdTimer);
 
-        if (holdTimer >= holdDuration)
-        {
-            loading = true;
+        //if (holdTimer >= holdDuration)
+       // {
+            //loading = true;
+            GamePlayerMovement playerMovement = FindObjectOfType<GamePlayerMovement>();
+            if (playerMovement.hasGas == false)
+            {
+                //playerMovement.firstPersonMode = true;
+                playerMovement.transform.position = new Vector3(1036.271f, 2f, 391.0851f);
+            }
+            if (playerMovement.hasGas == true)
+            {
             StartCoroutine(TriggerExit());
-        }
+            }
+        //}
     }
 
     void OnTriggerEnter(Collider other)
@@ -142,6 +151,9 @@ public class ExitPoint : MonoBehaviour
         if (exitPromptUI != null)
             exitPromptUI.SetActive(false);
 
+
+
+            
         if (showLevelCompleteUI && LevelCompleteManager.Instance != null)
         {
             // Show Level Complete screen
@@ -154,6 +166,8 @@ public class ExitPoint : MonoBehaviour
             Time.timeScale = 1f;
             SceneManager.LoadScene(nextSceneName);
         }
+
+        
     }
 
     // ── Editor gizmo ───────────────────────────────────────────────────────

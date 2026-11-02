@@ -4,11 +4,12 @@ using UnityEngine;
 public class GamePlayerMovement : MonoBehaviour
 {
     
-    // ── Movement ──────────────────────────────────────────────────────────
+    // ── Movement & Requirements ──────────────────────────────────────────────────────────
     [Header("Movement")]
     public float walkSpeed     = 3f;
     public float runSpeed      = 8f;
     public float rotationSpeed = 720f;
+    public bool  hasGas        = false;
 
     // ── Sprint ────────────────────────────────────────────────────────────
     [Header("Sprint")]

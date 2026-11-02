@@ -58,6 +58,8 @@ public class MrPebbleBoss : MonoBehaviour
     [Header("Movement")]
     public float walkSpeed  = 3.5f;
     public float chaseSpeed = 6f;
+    [Header("Rotation")]
+    public Vector3 rotationOffset = new Vector3(-180f, 0f, 0f);
 
     // ── Dialogue ───────────────────────────────────────────────────────────
     [Header("Dialogue")]
@@ -97,6 +99,7 @@ public class MrPebbleBoss : MonoBehaviour
     void Start()
     {
         // Find player
+        _agent.updateRotation = false;
         var playerGO = GameObject.FindGameObjectWithTag("Player");
         if (playerGO != null)
         {
@@ -243,7 +246,7 @@ public class MrPebbleBoss : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f);
 
-        _agent.isStopped = false;
+        //_agent.isStopped = false;
         currentState     = BossState.Chase;
         _isActing        = false;
     }
@@ -437,7 +440,15 @@ public class MrPebbleBoss : MonoBehaviour
         Debug.Log($"[MrPebble] Took {amount} dmg. HP: {currentHealth}/{maxHealth}" +
                   (currentState == BossState.Vulnerable ? " (VULNERABLE – 2× dmg!)" : ""));
 
-        if (currentHealth <= 0f) StartCoroutine(Die());
+        if (currentHealth <= 0f)
+        {
+        GamePlayerMovement playerMovement = FindObjectOfType<GamePlayerMovement>();
+        playerMovement.hasGas = true;
+        playerMovement.transform.position = new Vector3(0f, 1f, 0f);
+        }
+
+        if (currentHealth <= 0f) StartCoroutine(Die()) ;
+        
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -492,12 +503,23 @@ public class MrPebbleBoss : MonoBehaviour
     //  HELPERS
     // ══════════════════════════════════════════════════════════════════════
     void FaceTarget(Vector3 target)
+{
+    Vector3 dir = target - transform.position;
+    dir.y = 0f;
+
+    if (dir.sqrMagnitude > 0.001f)
     {
-        Vector3 dir = (target - transform.position);
-        dir.y = 0f;
-        if (dir.sqrMagnitude > 0.001f)
-            transform.rotation = Quaternion.LookRotation(dir);
+        Quaternion targetRotation =
+            Quaternion.LookRotation(dir) *
+            Quaternion.Euler(rotationOffset);
+
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation,
+            targetRotation,
+            Time.deltaTime * 8f
+        );
     }
+}
 
     // ── Runtime object creation ────────────────────────────────────────────
     void CreateWarningIndicator()
