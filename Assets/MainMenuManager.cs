@@ -2,12 +2,17 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Video;
 
 public class MainMenuManager : MonoBehaviour
 {
     [Header("Panels")]
     public GameObject inventoryPanel;
     public GameObject settingsPanel;
+
+    [Header("Story Video")]
+    public VideoPlayer storyVideoPlayer;
+    public GameObject storyVideoCanvas;
 
     [Header("Inventory Panel UI")]
     public Image[]            invSlotImages  = new Image[4];
@@ -64,7 +69,27 @@ public class MainMenuManager : MonoBehaviour
         // Clear saved inventory
         GameSaveManager.ClearInventory();
 
-        SceneManager.LoadScene("GameScene");
+
+        // Hide Main Menu
+        gameObject.SetActive(false);
+
+        // Show Story Video Canvas
+        storyVideoCanvas.SetActive(true);
+
+        // Prepare and play video
+        storyVideoPlayer.Stop();
+        storyVideoPlayer.loopPointReached -= OnVideoFinished;
+        storyVideoPlayer.loopPointReached += OnVideoFinished;
+
+        storyVideoPlayer.Play();
+
+    }
+
+    private void OnVideoFinished(VideoPlayer vp)
+    {
+    storyVideoPlayer.loopPointReached -= OnVideoFinished;
+
+    SceneManager.LoadScene("GameScene");
     }
 
     /// <summary>Loads the last saved scene, or GameScene if no save exists.</summary>

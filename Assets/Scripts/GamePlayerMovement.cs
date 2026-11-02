@@ -126,7 +126,7 @@ public class GamePlayerMovement : MonoBehaviour
                 _cam = _firstPersonCam; // Switch to first-person camera
             if (_cam != null && _cam != _firstPersonCam)
                 _cam.enabled = false;
-            hasGun = true; // Allow shooting when loot requirement is met
+            //hasGun = true; // Allow shooting when loot requirement is met
         }
         else
         {
@@ -134,7 +134,7 @@ public class GamePlayerMovement : MonoBehaviour
                 _firstPersonCam.enabled = false;
             if (_cam != null && _cam != _firstPersonCam)
                 _cam.enabled = true;
-            hasGun = false; // Disable shooting when loot requirement is not met
+            //hasGun = false; // Disable shooting when loot requirement is not met
         }
     }
 
@@ -274,118 +274,190 @@ public class GamePlayerMovement : MonoBehaviour
     // ─────────────────────────────────────────────────────────────────────
     void HandleMovement()
     {
-        if(!firstPersonMode)
-        {
-
         
-        float h = Input.GetAxisRaw("Horizontal");
-        float v = Input.GetAxisRaw("Vertical");
+if (!firstPersonMode)
+{
+    // THIRD-PERSON MOVEMENT
 
-        Vector3 camFwd   = _cam ? _cam.transform.forward : Vector3.forward;
-        camFwd.y = 0f; camFwd.Normalize();
-        Vector3 camRight = _cam ? _cam.transform.right : Vector3.right;
-        camRight.y = 0f; camRight.Normalize();
+    float h = Input.GetAxisRaw("Horizontal");
+    float v = Input.GetAxisRaw("Vertical");
 
-        Vector3 moveDir  = (camFwd * v + camRight * h).normalized;
-        bool    isMoving = moveDir.magnitude > 0.1f;
-        _isMoving = isMoving;
+    Vector3 camFwd = _cam ? _cam.transform.forward : Vector3.forward;
+    camFwd.y = 0f;
+    camFwd.Normalize();
 
-        // ── Sprint: BLOCKED while aiming or crouching ─────────────────────
-        bool wantsRun = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-                        && !_isAiming && !_isCrouching;
-        bool canRun   = _stamina > 0f;
+    Vector3 camRight = _cam ? _cam.transform.right : Vector3.right;
+    camRight.y = 0f;
+    camRight.Normalize();
 
-        if (isMoving && wantsRun && canRun)
-        {
-            _isSprinting = true;
-            _stamina     = Mathf.Max(0f, _stamina - staminaDrainRate * Time.deltaTime);
-            _regenTimer  = staminaRegenDelay;
-        }
+    Vector3 moveDir = (camFwd * v + camRight * h).normalized;
+
+    bool isMoving = moveDir.sqrMagnitude > 0.01f;
+    _isMoving = isMoving;
+
+    // SPRINT
+    bool wantsRun =
+        (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        && !_isAiming && !_isCrouching;
+
+    bool canRun = _stamina > 0f;
+
+    if (isMoving && wantsRun && canRun)
+    {
+        _isSprinting = true;
+        _stamina = Mathf.Max(0f, _stamina - staminaDrainRate * Time.deltaTime);
+        _regenTimer = staminaRegenDelay;
+    }
+    else
+    {
+        _isSprinting = false;
+
+        if (_regenTimer > 0f)
+            _regenTimer -= Time.deltaTime;
         else
-        {
-            _isSprinting = false;
-            if (_regenTimer > 0f)
-                _regenTimer -= Time.deltaTime;
-            else
-                _stamina = Mathf.Min(maxStamina, _stamina + staminaRegenRate * Time.deltaTime);
-        }
+            _stamina = Mathf.Min(maxStamina,
+                _stamina + staminaRegenRate * Time.deltaTime);
+    }
 
-        // ── Rotation (only when not aiming) ──────────────────────────────
-        if (isMoving && !_isAiming)
-        {
-            Quaternion targetRot = Quaternion.LookRotation(moveDir);
-            transform.rotation = Quaternion.RotateTowards(
-                transform.rotation, targetRot, rotationSpeed * Time.deltaTime);
-        }
+    // ROTATION
+    if (isMoving && !_isAiming)
+    {
+        Quaternion targetRot = Quaternion.LookRotation(moveDir);
 
-        // ── Animator Speed: 0=idle, 1=walk, 2=run ────────────────────────
-        float animSpeed = 0f;
-        if (isMoving) animSpeed = _isSprinting ? 2f : 1f;
-        if (animator != null)
-        {
-            animator.SetFloat("Speed", animSpeed, 0.1f, Time.deltaTime);
+        transform.rotation = Quaternion.RotateTowards(
+            transform.rotation,
+            targetRot,
+            rotationSpeed * Time.deltaTime
+        );
+    }
 
-            // Local-space velocity for the combat 2D blend tree
-            // Project world moveDir onto the player's local forward/right axes
-            Vector3 localMove = transform.InverseTransformDirection(moveDir);
-            animator.SetFloat("VelocityX", localMove.x, 0.1f, Time.deltaTime);
-            animator.SetFloat("VelocityZ", localMove.z, 0.1f, Time.deltaTime);
-        }
+    // ANIMATION
+    float animSpeed = 0f;
 
-        // ── Gravity ───────────────────────────────────────────────────────
-        if (_cc.isGrounded && _velocity.y < 0f) _velocity.y = -2f;
-        _velocity.y += _gravity * Time.deltaTime;
+    if (isMoving)
+        animSpeed = _isSprinting ? 2f : 1f;
 
-        float speed = _isCrouching ? crouchSpeed : (_isSprinting ? runSpeed : walkSpeed);
-        _cc.Move((moveDir * speed + _velocity) * Time.deltaTime);
-        }
+    if (animator != null)
+    {
+        animator.SetFloat("Speed", animSpeed, 0.1f, Time.deltaTime);
+
+        Vector3 localMove =
+            transform.InverseTransformDirection(moveDir);
+
+        animator.SetFloat("VelocityX", localMove.x, 0.1f, Time.deltaTime);
+        animator.SetFloat("VelocityZ", localMove.z, 0.1f, Time.deltaTime);
+    }
+
+    // GRAVITY
+    if (_cc.isGrounded && _velocity.y < 0f)
+        _velocity.y = -2f;
+
+    _velocity.y += _gravity * Time.deltaTime;
+
+    // APPLY MOVEMENT
+    float speed = _isCrouching ? crouchSpeed :
+                  (_isSprinting ? runSpeed : walkSpeed);
+
+    _cc.Move((moveDir * speed + _velocity) * Time.deltaTime);
+}
+else
+{
+    // FIRST-PERSON CAMERA LOOK
+
+    float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
+    float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
+
+    transform.Rotate(0f, mouseX, 0f);
+
+    cameraRotationX -= mouseY;
+    cameraRotationX = Mathf.Clamp(cameraRotationX, -90f, 90f);
+
+    playerCamera.localRotation =
+        Quaternion.Euler(cameraRotationX, 0f, 0f);
+
+    // FIRST-PERSON MOVEMENT
+
+    float x = Input.GetAxisRaw("Horizontal");
+    float z = Input.GetAxisRaw("Vertical");
+
+    Vector3 movement =
+        (transform.right * x + transform.forward * z).normalized;
+
+    bool isMoving = movement.sqrMagnitude > 0.01f;
+    _isMoving = isMoving;
+
+    // SPRINT
+    bool wantsRun =
+        (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        && !_isAiming && !_isCrouching;
+
+    bool canRun = _stamina > 0f;
+
+    if (isMoving && wantsRun && canRun)
+    {
+        _isSprinting = true;
+        _stamina = Mathf.Max(0f,
+            _stamina - staminaDrainRate * Time.deltaTime);
+
+        _regenTimer = staminaRegenDelay;
+    }
+    else
+    {
+        _isSprinting = false;
+
+        if (_regenTimer > 0f)
+            _regenTimer -= Time.deltaTime;
         else
-        {
-        // MOUSE LOOK
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
+            _stamina = Mathf.Min(maxStamina,
+                _stamina + staminaRegenRate * Time.deltaTime);
+    }
 
-        transform.Rotate(0f, mouseX, 0f);
+    // ANIMATION
+    float animSpeed = 0f;
 
-        cameraRotationX -= mouseY;
-        cameraRotationX = Mathf.Clamp(cameraRotationX, -90f, 90f);
+    if (isMoving)
+        animSpeed = _isSprinting ? 2f : 1f;
 
-        playerCamera.localRotation =
-            Quaternion.Euler(cameraRotationX, 0f, 0f);
+    if (animator != null)
+    {
+        animator.SetFloat("Speed", animSpeed, 0.1f, Time.deltaTime);
 
-        // MOVEMENT
-        float x = Input.GetAxisRaw("Horizontal");
-        float z = Input.GetAxisRaw("Vertical");
+        Vector3 localMove =
+            transform.InverseTransformDirection(movement);
 
-        Vector3 movement =
-            (transform.right * x + transform.forward * z).normalized;
+        animator.SetFloat("VelocityX", localMove.x, 0.1f, Time.deltaTime);
+        animator.SetFloat("VelocityZ", localMove.z, 0.1f, Time.deltaTime);
+    }
 
-        // GROUND CHECK
-        bool grounded = Physics.CheckSphere(
-            transform.position + Vector3.down * 0.1f,
-            0.2f, LayerMask.GetMask("Ground"));
+    // GROUND CHECK
+    bool grounded = Physics.CheckSphere(
+        transform.position + Vector3.down * 0.1f,
+        0.2f,
+        LayerMask.GetMask("Ground")
+    );
 
-        if (grounded && verticalVelocity < 0f)
-        {
-            verticalVelocity = -2f;
-        }
+    // JUMPING
+    if (grounded && verticalVelocity < 0f)
+        verticalVelocity = -2f;
 
-        // JUMPING
-        if (grounded && Input.GetKeyDown(KeyCode.Space))
-        {
-            verticalVelocity = Mathf.Sqrt(3f * -_gravity * -1.5f); // jump height of 1.5 units
-        }
+    if (grounded && Input.GetKeyDown(KeyCode.Space))
+    {
+        verticalVelocity = Mathf.Sqrt(3f * -_gravity * 1.5f);
+    }
 
-        // GRAVITY
-        verticalVelocity += _gravity * Time.deltaTime;
+    // GRAVITY
+    verticalVelocity += _gravity * Time.deltaTime;
 
-        // APPLY MOVEMENT AND VERTICAL VELOCITY TOGETHER
-        movement.y = verticalVelocity;
+    // APPLY MOVEMENT
+    float currentSpeed = _isCrouching ? crouchSpeed :
+                         (_isSprinting ? runSpeed : walkSpeed);
 
-        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
-        _cc.Move(movement * currentSpeed * Time.deltaTime);
+    movement *= currentSpeed;
+    movement.y = verticalVelocity;
 
-        }
+    _cc.Move(movement * Time.deltaTime);
+}
+
     }
 
     // ─────────────────────────────────────────────────────────────────────
