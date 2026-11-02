@@ -25,8 +25,18 @@ public class MainMenuManager : MonoBehaviour
 
     // ── Unity ──────────────────────────────────────────────────────────────
 
+    void Awake()
+    {
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
     void Start()
     {
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
         // Wire slider OnValueChanged at runtime so labels always update
         WireSliders();
     }
@@ -170,5 +180,13 @@ public class MainMenuManager : MonoBehaviour
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
+    }
+
+    void Update()
+    {
+        if (Cursor.lockState != CursorLockMode.None)
+            Cursor.lockState = CursorLockMode.None;
+        if (!Cursor.visible)
+            Cursor.visible = true;
     }
 }

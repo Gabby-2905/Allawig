@@ -465,7 +465,17 @@ else
     //  PUBLIC HELPERS
     // ─────────────────────────────────────────────────────────────────────
     public void TakeDamage(float amount)
-        => currentHealth = Mathf.Clamp(currentHealth - amount, 0f, maxHealth);
+    {
+        currentHealth = Mathf.Clamp(currentHealth - amount, 0f, maxHealth);
+        if (currentHealth <= 0f)
+        {
+            GameOverManager gom = FindFirstObjectByType<GameOverManager>();
+            if (gom != null)
+            {
+                gom.ShowGameOver("YOU DIED!", "You ran out of health.");
+            }
+        }
+    }
 
     public void Heal(float amount)
         => currentHealth = Mathf.Clamp(currentHealth + amount, 0f, maxHealth);

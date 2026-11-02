@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using System.Collections;
 
@@ -9,6 +8,8 @@ public class PlayerStun : MonoBehaviour
 
     [Header("Movement Scripts")]
     public MonoBehaviour[] movementScripts;
+
+    public bool IsStunned => stunCoroutine != null;
 
     private Coroutine stunCoroutine;
 
@@ -32,26 +33,31 @@ public class PlayerStun : MonoBehaviour
 
     IEnumerator StunRoutine(float duration)
     {
-        // Disable movement scripts
+        // Stop movement animation if animator is present
+        Animator anim = GetComponentInChildren<Animator>();
+        if (anim != null)
+        {
+            anim.SetFloat("Speed", 0f);
+            anim.SetFloat("VelocityX", 0f);
+            anim.SetFloat("VelocityZ", 0f);
+        }
+
+        // Disable movement scripts so input is ignored
         foreach (MonoBehaviour script in movementScripts)
         {
             if (script != null)
                 script.enabled = false;
         }
 
-        // Disable character controller
-        if (characterController != null)
-            characterController.enabled = false;
+        // NOTE: We deliberately do NOT disable characterController.
+        // Disabling CharacterController removes the player's collider, causing
+        // OnTriggerExit to fire on trigger zones (such as ExitPoint) and breaking trigger interactions.
 
         Debug.Log("PLAYER IS STUNNED!");
 
         yield return new WaitForSeconds(duration);
 
-        // Enable character controller
-        if (characterController != null)
-            characterController.enabled = true;
-
-        // Enable movement scripts
+        // Re-enable movement scripts
         foreach (MonoBehaviour script in movementScripts)
         {
             if (script != null)

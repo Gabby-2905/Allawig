@@ -13,10 +13,10 @@ using TMPro;
 ///    • Tutorial: dodge or jump to avoid
 ///
 ///  SKILL 2 – Bato Charge  (Dash Attack)
-///    • Short wind-up (leans forward, brief pause)
-///    • Charges straight at player at high speed
+///    • Smooth wind-up: faces player, leans forward
+///    • Charges straight at high speed through the player's position
 ///    • If hits a WALL → stunned / vulnerable (takes 2× damage)
-///    • If hits PLAYER → deals damage, no stun
+///    • If passes through PLAYER → deals damage once
 ///    • Tutorial: side-dash and counter-attack during vulnerable window
 ///
 ///  DIALOGUE
@@ -34,6 +34,7 @@ public class MrPebbleBoss : MonoBehaviour
     public float currentHealth;
     public float detectionRange = 60f;   // large – boss arena is far from spawn
     public float attackRange    = 4f;
+    public GameObject bossHealthBar; // Reference to the boss health bar GameObject
 
     // ── Bato Slam ──────────────────────────────────────────────────────────
     [Header("Bato Slam")]
@@ -50,16 +51,16 @@ public class MrPebbleBoss : MonoBehaviour
     public float chargeSpeed        = 18f;
     public float chargeWindupTime   = 0.6f;
     public float chargeCooldown     = 7f;
-    public float chargeDistance     = 20f;
+    public float chargeDistance     = 15f;
     public float vulnerableDuration = 3f;    // stun window after wall hit
-    public float chargeHitRadius    = 1.5f;
+    public float chargeHitRadius    = 1.8f;
 
     // ── Movement ───────────────────────────────────────────────────────────
     [Header("Movement")]
     public float walkSpeed  = 3.5f;
     public float chaseSpeed = 6f;
     [Header("Rotation")]
-    public Vector3 rotationOffset = new Vector3(-180f, 0f, 0f);
+    public Vector3 rotationOffset = new Vector3(-90f, 0f, 0f);
 
     // ── Dialogue ───────────────────────────────────────────────────────────
     [Header("Dialogue")]
@@ -94,6 +95,40 @@ public class MrPebbleBoss : MonoBehaviour
     {
         _agent = GetComponent<NavMeshAgent>();
         currentHealth = maxHealth;
+        AdjustHitboxForRotation();
+    }
+
+    void OnValidate()
+    {
+        AdjustHitboxForRotation();
+    }
+
+    /// <summary>
+    /// Ensures the CapsuleCollider hitbox is ALWAYS upright in world space,
+    /// even if the boss model is rotated -90 degrees on the X axis.
+    /// </summary>
+    public void AdjustHitboxForRotation()
+    {
+        CapsuleCollider col = GetComponent<CapsuleCollider>();
+        if (col == null) return;
+
+        // Check if the boss is pitched around ~ -90° (270°) on X
+        float pitch = transform.localEulerAngles.x;
+        bool isPitched90 = Mathf.Abs(Mathf.DeltaAngle(pitch, -90f)) < 30f ||
+                           Mathf.Abs(rotationOffset.x - (-90f)) < 30f;
+
+        if (isPitched90)
+        {
+            // When pitched -90 on X, local Z is World UP
+            col.direction = 2; // Z-axis
+            col.center = new Vector3(0f, 0f, col.height * 0.5f);
+        }
+        else
+        {
+            // When upright, local Y is World UP
+            col.direction = 1; // Y-axis
+            col.center = new Vector3(0f, col.height * 0.5f, 0f);
+        }
     }
 
     void Start()
@@ -120,7 +155,9 @@ public class MrPebbleBoss : MonoBehaviour
 
         // Hook up health bar
         if (healthBar != null)
+        {
             healthBar.SetBoss(this);
+        }
 
         // Wait until on NavMesh before chasing
         StartCoroutine(InitWhenOnNavMesh());
@@ -164,6 +201,7 @@ public class MrPebbleBoss : MonoBehaviour
     {
         _agent.speed = chaseSpeed;
         _agent.SetDestination(_player.position);
+        FaceTarget(_player.position, 10f);
 
         // Prefer Slam when close; Charge when at medium range
         if (dist <= attackRange && _slamTimer <= 0f)
@@ -188,8 +226,9 @@ public class MrPebbleBoss : MonoBehaviour
         _agent.isStopped = true;
         _agent.velocity  = Vector3.zero;
 
-        // Face the player
-        FaceTarget(_player.position);
+        // Face the player immediately
+        if (_player != null)
+            FaceTarget(_player.position, 0f);
 
         // Dialogue
         ShowDialogue("TIKMAN MO ITO!");
@@ -206,7 +245,7 @@ public class MrPebbleBoss : MonoBehaviour
         }
 
         // ── Show red warning circle at PLAYER'S current position ───────────
-        Vector3 slamTarget = _player.position;
+        Vector3 slamTarget = _player != null ? _player.position : transform.position + transform.forward * 3f;
         if (_warningCircle != null)
         {
             _warningCircle.transform.position   = new Vector3(slamTarget.x, slamTarget.y + 0.05f, slamTarget.z);
@@ -246,9 +285,8 @@ public class MrPebbleBoss : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f);
 
-        //_agent.isStopped = false;
-        currentState     = BossState.Chase;
-        _isActing        = false;
+        currentState = BossState.Chase;
+        _isActing    = false;
     }
 
     IEnumerator ShockwavePulse(Vector3 origin)
@@ -291,13 +329,15 @@ public class MrPebbleBoss : MonoBehaviour
         // Dialogue
         ShowDialogue("WALANG TAKAS!");
 
-        // ── Wind-up: face player, lean forward (scale Z) ───────────────────
-        FaceTarget(_player.position);
+        // ── Wind-up: smoothly face player, lean forward ───────────────────
         Vector3 origScale = transform.localScale;
         float elapsed = 0f;
         while (elapsed < chargeWindupTime)
         {
             float t = elapsed / chargeWindupTime;
+            if (_player != null)
+                FaceTarget(_player.position, 15f);
+
             // Lean forward: squish Y, stretch Z
             transform.localScale = Vector3.Lerp(
                 origScale,
@@ -307,49 +347,71 @@ public class MrPebbleBoss : MonoBehaviour
             yield return null;
         }
 
+        // Snap facing directly to player when launching dash
+        Vector3 chargeDir = transform.forward;
+        chargeDir.y = 0f;
+        if (_player != null)
+        {
+            Vector3 toPlayer = _player.position - transform.position;
+            toPlayer.y = 0f;
+            if (toPlayer.sqrMagnitude > 0.001f)
+                chargeDir = toPlayer.normalized;
+        }
+        if (chargeDir.sqrMagnitude > 0.001f)
+            transform.rotation = Quaternion.LookRotation(chargeDir) * Quaternion.Euler(rotationOffset);
+
         // ── Charge ─────────────────────────────────────────────────────────
-        _agent.enabled = false;   // manual movement during charge
+        _agent.enabled = false; // manual translation during charge
 
-        Vector3 chargeDir  = transform.forward;
-        float   charged    = 0f;
-        bool    hitWall    = false;
-        bool    hitPlayer  = false;
+        // Ensure dash travels all the way through the player's position
+        float distToPlayer = _player != null ? Vector3.Distance(transform.position, _player.position) : 10f;
+        float actualChargeDistance = Mathf.Max(chargeDistance, distToPlayer + 8f);
 
-        while (charged < chargeDistance && !hitWall && !hitPlayer)
+        float charged = 0f;
+        bool hitWall = false;
+        bool damagedPlayer = false;
+
+        while (charged < actualChargeDistance && !hitWall)
         {
             float step = chargeSpeed * Time.deltaTime;
             transform.position += chargeDir * step;
             charged += step;
 
-            // Restore scale during charge
+            // Restore scale smoothly during dash
             transform.localScale = Vector3.Lerp(
                 new Vector3(origScale.x * 0.85f, origScale.y * 0.75f, origScale.z * 1.3f),
                 origScale,
-                charged / chargeDistance);
+                charged / actualChargeDistance);
 
-            // Player hit check
-            Collider[] overlaps = Physics.OverlapSphere(transform.position, chargeHitRadius);
-            foreach (var col in overlaps)
+            // Check damage to player once as boss charges through
+            if (!damagedPlayer && _player != null)
             {
-                if (col.CompareTag("Player"))
+                Collider[] overlaps = Physics.OverlapSphere(transform.position + Vector3.up * 1f, chargeHitRadius);
+                foreach (var col in overlaps)
                 {
-                    DamagePlayer(chargeDamage);
-                    hitPlayer = true;
-                    break;
+                    if (col.CompareTag("Player"))
+                    {
+                        DamagePlayer(chargeDamage);
+                        damagedPlayer = true;
+                        break;
+                    }
                 }
             }
 
-            // Wall hit check
-            if (!hitPlayer)
+            // Wall hit check: only hit vertical obstacles/walls, ignore self, triggers, floor
+            Vector3 rayOrigin = transform.position + Vector3.up * 1.2f + chargeDir * 0.8f;
+            RaycastHit[] hits = Physics.RaycastAll(rayOrigin, chargeDir, step + 0.4f);
+            foreach (var hit in hits)
             {
-                RaycastHit wallHit;
-                if (Physics.Raycast(transform.position + Vector3.up * 0.5f, chargeDir, out wallHit, step + 0.6f))
+                if (hit.collider.isTrigger) continue;
+                if (hit.collider.CompareTag("Player")) continue;
+                if (hit.collider.transform == transform || hit.collider.transform.IsChildOf(transform)) continue;
+
+                // Wall normal must be steep (< 0.5f on Y) so ground / slopes are not counted as walls
+                if (hit.normal.y < 0.5f)
                 {
-                    if (!wallHit.collider.isTrigger && !wallHit.collider.CompareTag("Player"))
-                    {
-                        hitWall = true;
-                        break;
-                    }
+                    hitWall = true;
+                    break;
                 }
             }
 
@@ -358,7 +420,13 @@ public class MrPebbleBoss : MonoBehaviour
 
         transform.localScale = origScale;
 
-        // Re-enable NavMeshAgent
+        // Sample position back onto NavMesh so boss doesn't clip out of bounds
+        NavMeshHit navHit;
+        if (NavMesh.SamplePosition(transform.position, out navHit, 5f, NavMesh.AllAreas))
+        {
+            transform.position = navHit.position;
+        }
+
         _agent.enabled = true;
         while (!_agent.isOnNavMesh) yield return null;
 
@@ -442,13 +510,18 @@ public class MrPebbleBoss : MonoBehaviour
 
         if (currentHealth <= 0f)
         {
-        GamePlayerMovement playerMovement = FindObjectOfType<GamePlayerMovement>();
-        playerMovement.hasGas = true;
-        playerMovement.transform.position = new Vector3(0f, 1f, 0f);
-        }
+            _isDead = true;
+            if (bossHealthBar != null)
+                bossHealthBar.SetActive(false);
+            if (healthBar != null)
+                healthBar.Hide();
 
-        if (currentHealth <= 0f) StartCoroutine(Die()) ;
-        
+            GamePlayerMovement playerMovement = FindFirstObjectByType<GamePlayerMovement>();
+            if (playerMovement != null)
+                playerMovement.hasGas = true;
+
+            StartCoroutine(Die());
+        }
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -458,24 +531,43 @@ public class MrPebbleBoss : MonoBehaviour
     {
         _isDead      = true;
         currentState = BossState.Dead;
-        _agent.isStopped = true;
-        _agent.enabled   = false;
+        if (_agent != null)
+        {
+            _agent.isStopped = true;
+            _agent.enabled   = false;
+        }
+
+        if (_warningCircle != null)
+            _warningCircle.SetActive(false);
+
+        if (bossHealthBar != null)
+            bossHealthBar.SetActive(false);
+        if (healthBar != null)
+            healthBar.Hide();
 
         ShowDialogue("May kailangan lang akong harapin na mas mataas na usapin.\nHindi pa rito nagtatapos ang laban natin!");
         Debug.Log("[MrPebble] DEFEATED!");
 
-        // Sink into ground
+        // Sink into ground for 1.5 seconds
         float t = 0f;
         Vector3 startPos = transform.position;
-        while (t < 2f)
+        while (t < 1.5f)
         {
-            transform.position = Vector3.Lerp(startPos, startPos - Vector3.up * 3f, t / 2f);
+            transform.position = Vector3.Lerp(startPos, startPos - Vector3.up * 3f, t / 1.5f);
             t += Time.deltaTime;
             yield return null;
         }
 
-        yield return new WaitForSeconds(1.5f);
-        gameObject.SetActive(false);
+        // Teleport player back safely
+        var playerGO = GameObject.FindGameObjectWithTag("Player");
+        if (playerGO != null)
+        {
+            ExitPoint.TeleportPlayer(playerGO.transform, new Vector3(0f, 1f, 0f));
+            Debug.Log("[MrPebble] Player teleported back to (0, 1, 0)!");
+        }
+
+        // Destroy boss GameObject
+        Destroy(gameObject);
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -502,24 +594,27 @@ public class MrPebbleBoss : MonoBehaviour
     // ══════════════════════════════════════════════════════════════════════
     //  HELPERS
     // ══════════════════════════════════════════════════════════════════════
-    void FaceTarget(Vector3 target)
-{
-    Vector3 dir = target - transform.position;
-    dir.y = 0f;
-
-    if (dir.sqrMagnitude > 0.001f)
+    void FaceTarget(Vector3 target, float turnSpeed = 8f)
     {
-        Quaternion targetRotation =
-            Quaternion.LookRotation(dir) *
-            Quaternion.Euler(rotationOffset);
+        Vector3 dir = target - transform.position;
+        dir.y = 0f;
 
-        transform.rotation = Quaternion.Slerp(
-            transform.rotation,
-            targetRotation,
-            Time.deltaTime * 8f
-        );
+        if (dir.sqrMagnitude > 0.001f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(dir);
+            if (rotationOffset != Vector3.zero)
+                targetRotation *= Quaternion.Euler(rotationOffset);
+
+            if (turnSpeed <= 0f)
+                transform.rotation = targetRotation;
+            else
+                transform.rotation = Quaternion.Slerp(
+                    transform.rotation,
+                    targetRotation,
+                    Time.deltaTime * turnSpeed
+                );
+        }
     }
-}
 
     // ── Runtime object creation ────────────────────────────────────────────
     void CreateWarningIndicator()
