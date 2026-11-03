@@ -61,11 +61,45 @@ public class LevelCompleteManager : MonoBehaviour
 
     private void Start()
     {
+        SetupButtons();
+    }
+
+    public void SetupButtons()
+    {
         if (backToMainMenuButton != null)
+        {
+            backToMainMenuButton.interactable = true;
+            backToMainMenuButton.onClick.RemoveAllListeners();
             backToMainMenuButton.onClick.AddListener(OnBackToMainMenu);
+        }
 
         if (nextSectorButton != null)
+        {
+            nextSectorButton.interactable = true;
+            nextSectorButton.onClick.RemoveAllListeners();
             nextSectorButton.onClick.AddListener(OnNextSector);
+        }
+
+        // Also search any other buttons inside levelCompleteCanvas
+        if (levelCompleteCanvas != null)
+        {
+            Button[] buttons = levelCompleteCanvas.GetComponentsInChildren<Button>(true);
+            foreach (var btn in buttons)
+            {
+                btn.interactable = true;
+                string btnName = btn.name.ToLower();
+                if (btnName.Contains("next") || btnName.Contains("sector") || btnName.Contains("continue"))
+                {
+                    btn.onClick.RemoveAllListeners();
+                    btn.onClick.AddListener(OnNextSector);
+                }
+                else if (btnName.Contains("menu") || btnName.Contains("main"))
+                {
+                    btn.onClick.RemoveAllListeners();
+                    btn.onClick.AddListener(OnBackToMainMenu);
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -78,6 +112,8 @@ public class LevelCompleteManager : MonoBehaviour
         // Pause the game
         Time.timeScale = 0f;
 
+        GameOverManager.EnsureEventSystemInputModule();
+
         // Update objective text
         if (objectiveText != null)
             objectiveText.text = $"{objectiveLabel}  {objectiveCurrent}/{objectiveTotal}";
@@ -86,6 +122,7 @@ public class LevelCompleteManager : MonoBehaviour
         UpdateStars();
 
         levelCompleteCanvas.SetActive(true);
+        SetupButtons();
 
         // Unlock cursor
         Cursor.lockState = CursorLockMode.None;
@@ -105,10 +142,6 @@ public class LevelCompleteManager : MonoBehaviour
 
     private void UpdateStars()
     {
-        // Star layout: left, center, right
-        // starsEarned = 1 → only center filled
-        // starsEarned = 2 → center + left filled
-        // starsEarned = 3 → all filled
         bool leftFilled   = starsEarned >= 2;
         bool centerFilled = starsEarned >= 1;
         bool rightFilled  = starsEarned >= 3;
@@ -134,6 +167,8 @@ public class LevelCompleteManager : MonoBehaviour
     private void OnBackToMainMenu()
     {
         Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
         SceneManager.LoadScene(mainMenuSceneName);
     }
 
@@ -143,7 +178,7 @@ public class LevelCompleteManager : MonoBehaviour
         if (!string.IsNullOrEmpty(nextSceneName))
             SceneManager.LoadScene(nextSceneName);
         else
-            Debug.LogWarning("[LevelCompleteManager] nextSceneName is not set!");
+            SceneManager.LoadScene("Level2Scene");
     }
 
     private void OnDestroy()

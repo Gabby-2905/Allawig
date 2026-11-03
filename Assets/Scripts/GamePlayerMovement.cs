@@ -106,7 +106,7 @@ public class GamePlayerMovement : MonoBehaviour
 
         if (Input.GetKeyDown("e"))
         {
-            CollectiblesCollect();
+            HealCollect();
         }
         
 
@@ -142,17 +142,67 @@ public class GamePlayerMovement : MonoBehaviour
     // ─────────────────────────────────────────────────────────────────────
     //  COLLECTIBLE
     // ─────────────────────────────────────────────────────────────────────
-    void CollectiblesCollect()
+    void HealCollect()
     {
-        // RaycastHit hit;
-        // if (Physics.Raycast(playerCamera.position, playerCamera.forward, out hit, 3f))
-        // {
-        //     Collectible collectibles = hit.transform.GetComponent<Collectible>();
-        //     if (collectibles != null)
-        //     {
-        //         collectibles.Collect();
-        //     }
-        // }
+        // 1. Identify active camera
+        Camera activeCam = null;
+        if (firstPersonCamera != null && firstPersonCamera.gameObject.activeInHierarchy && firstPersonCamera.enabled)
+            activeCam = firstPersonCamera;
+        else if (mainCamera != null && mainCamera.gameObject.activeInHierarchy && mainCamera.enabled)
+            activeCam = mainCamera;
+        else if (_cam != null && _cam.gameObject.activeInHierarchy && _cam.enabled)
+            activeCam = _cam;
+        else
+            activeCam = Camera.main;
+
+        float interactDistance = 4.0f;
+        Medkit foundMedkit = null;
+
+        // 2. Center-screen raycast from active camera (works in 1st person or 3rd person)
+        if (activeCam != null)
+        {
+            Ray ray = activeCam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+            if (Physics.Raycast(ray, out RaycastHit hit, interactDistance + 3f))
+            {
+                foundMedkit = hit.transform.GetComponent<Medkit>() ?? hit.transform.GetComponentInParent<Medkit>();
+            }
+        }
+
+        // 3. Forward raycast from player chest
+        if (foundMedkit == null)
+        {
+            Vector3 origin = transform.position + Vector3.up * 1.0f;
+            if (Physics.Raycast(origin, transform.forward, out RaycastHit hit, interactDistance))
+            {
+                foundMedkit = hit.transform.GetComponent<Medkit>() ?? hit.transform.GetComponentInParent<Medkit>();
+            }
+        }
+
+        // 4. Proximity sphere check (standing right next to or in front of the medkit)
+        if (foundMedkit == null)
+        {
+            Collider[] colliders = Physics.OverlapSphere(transform.position + Vector3.up * 0.8f, 2.5f);
+            float closestDist = float.MaxValue;
+            foreach (var col in colliders)
+            {
+                Medkit m = col.GetComponent<Medkit>() ?? col.GetComponentInParent<Medkit>();
+                if (m != null)
+                {
+                    float d = Vector3.Distance(transform.position, m.transform.position);
+                    if (d < closestDist)
+                    {
+                        closestDist = d;
+                        foundMedkit = m;
+                    }
+                }
+            }
+        }
+
+        // 5. Trigger heal if medkit found
+        if (foundMedkit != null)
+        {
+            foundMedkit.Heal(this);
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -465,7 +515,17 @@ else
     //  PUBLIC HELPERS
     // ─────────────────────────────────────────────────────────────────────
     public void TakeDamage(float amount)
-        => currentHealth = Mathf.Clamp(currentHealth - amount, 0f, maxHealth);
+    {
+        currentHealth = Mathf.Clamp(currentHealth - amount, 0f, maxHealth);
+        if (currentHealth <= 0f)
+        {
+            GameOverManager gom = FindFirstObjectByType<GameOverManager>();
+            if (gom != null)
+            {
+                gom.ShowGameOver("YOU DIED!", "You ran out of health.");
+            }
+        }
+    }
 
     public void Heal(float amount)
         => currentHealth = Mathf.Clamp(currentHealth + amount, 0f, maxHealth);

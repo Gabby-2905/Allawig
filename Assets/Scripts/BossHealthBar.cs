@@ -4,6 +4,7 @@ using TMPro;
 
 /// <summary>
 /// Boss health bar UI — shown at top of screen when boss is active.
+/// Starts hidden by default until the player teleports to the boss arena.
 /// </summary>
 public class BossHealthBar : MonoBehaviour
 {
@@ -15,13 +16,43 @@ public class BossHealthBar : MonoBehaviour
     public GameObject panel;
 
     private MrPebbleBoss _boss;
+    private bool _hasBeenShown = false;
+
+    void Awake()
+    {
+        if (!_hasBeenShown)
+            Hide();
+    }
+
+    void Start()
+    {
+        if (!_hasBeenShown)
+            Hide();
+    }
+
+    public void Show()
+    {
+        _hasBeenShown = true;
+        gameObject.SetActive(true);
+        if (panel != null)
+            panel.SetActive(true);
+    }
+
+    public void Hide()
+    {
+        _hasBeenShown = false;
+        if (panel != null && panel != gameObject)
+            panel.SetActive(false);
+        else
+            gameObject.SetActive(false);
+    }
 
     public void SetBoss(MrPebbleBoss boss)
     {
         _boss = boss;
-        if (panel != null) panel.SetActive(true);
         if (bossNameText != null) bossNameText.text = "MR. PEBBLE";
         UpdateHealth(boss.currentHealth, boss.maxHealth);
+        // Boss health bar remains hidden until player teleports to boss arena
     }
 
     public void UpdateHealth(float current, float max)

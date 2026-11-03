@@ -1,12 +1,14 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using System.Collections;
 using TMPro;
 
 /// <summary>
 /// Place this on a trigger collider in the scene.
-/// When the player enters it, a short "hold to exit" prompt appears
-/// and then the Level Complete screen is shown (or the next level is loaded).
+/// When the player enters it, it checks whether the player has gas.
+/// If not, teleports the player to the boss arena.
+/// If the player has gas (boss defeated), shows the Win / Level Complete panel.
 /// </summary>
 public class ExitPoint : MonoBehaviour
 {
@@ -43,6 +45,11 @@ public class ExitPoint : MonoBehaviour
     private bool  loading     = false;
     private bool  _locked     = false;
 
+    public GameObject winMenu;
+    public GameObject bossHealthBar; // Reference to the boss health bar GameObject
+
+    private GamePlayerMovement _playerMovement;
+
     void Start()
     {
         if (exitPromptUI != null)
@@ -51,17 +58,42 @@ public class ExitPoint : MonoBehaviour
         if (exitLight != null)
             exitLight.color = exitColor;
 
+        FindPlayerReference();
         UpdatePromptText(0f);
+    }
+
+    private void FindPlayerReference()
+    {
+        if (_playerMovement != null) return;
+
+        GameObject playerGO = GameObject.FindGameObjectWithTag("Player");
+        if (playerGO != null)
+        {
+            _playerMovement = playerGO.GetComponent<GamePlayerMovement>();
+        }
+
+        if (_playerMovement == null)
+        {
+            _playerMovement = FindFirstObjectByType<GamePlayerMovement>(FindObjectsInactive.Include);
+        }
+    }
+
+    /// <summary>Safely teleports a player Transform even if CharacterController is active.</summary>
+    public static void TeleportPlayer(Transform targetTransform, Vector3 destination)
+    {
+        if (targetTransform == null) return;
+        CharacterController cc = targetTransform.GetComponent<CharacterController>();
+        if (cc != null) cc.enabled = false;
+        targetTransform.position = destination;
+        if (cc != null) cc.enabled = true;
     }
 
     /// <summary>Lock or unlock this exit point.</summary>
     public void SetLocked(bool locked)
     {
         _locked = locked;
-        // Update light color to show locked/unlocked state
         if (exitLight != null)
             exitLight.color = locked ? new Color(1f, 0.3f, 0.1f, 1f) : exitColor;
-        // Update prompt if visible
         if (playerInside && promptText != null)
             UpdatePromptText(holdTimer);
     }
@@ -69,9 +101,9 @@ public class ExitPoint : MonoBehaviour
     void Update()
     {
         if (!playerInside || loading) return;
+
         if (_locked)
         {
-            // Show locked message
             if (promptText != null)
             {
                 int needed = LootTaskManager.Instance != null
@@ -85,20 +117,32 @@ public class ExitPoint : MonoBehaviour
         holdTimer += Time.deltaTime;
         UpdatePromptText(holdTimer);
 
-        //if (holdTimer >= holdDuration)
-       // {
-            //loading = true;
-            GamePlayerMovement playerMovement = FindObjectOfType<GamePlayerMovement>();
-            if (playerMovement.hasGas == false)
+        FindPlayerReference();
+        if (_playerMovement == null) return;
+
+        // If player has not collected gas (boss not defeated yet), teleport to boss arena
+        if (!_playerMovement.hasGas)
+        {
+            // Teleport to boss arena first
+            TeleportPlayer(_playerMovement.transform, new Vector3(1036.271f, 2f, 391.0851f));
+            playerInside = false;
+
+            // Show the boss HP bar after teleporting
+            // bossHealthBar field points to the panel GO; find the script separately
+            if (bossHealthBar != null)
+                bossHealthBar.SetActive(true);
+
+            BossHealthBar bhbScript = FindFirstObjectByType<BossHealthBar>(FindObjectsInactive.Include);
+            if (bhbScript != null)
             {
-                //playerMovement.firstPersonMode = true;
-                playerMovement.transform.position = new Vector3(1036.271f, 2f, 391.0851f);
+                bhbScript.gameObject.SetActive(true);
+                bhbScript.Show();
             }
-            if (playerMovement.hasGas == true)
-            {
-            StartCoroutine(TriggerExit());
-            }
-        //}
+        }
+        else // Player has gas (boss defeated), entering exit 1 triggers win!
+        {
+            ShowWin();
+        }
     }
 
     void OnTriggerEnter(Collider other)
@@ -107,10 +151,22 @@ public class ExitPoint : MonoBehaviour
         playerInside = true;
         holdTimer    = 0f;
 
+        if (_playerMovement == null)
+            _playerMovement = other.GetComponent<GamePlayerMovement>() ?? other.GetComponentInParent<GamePlayerMovement>();
+
         if (exitPromptUI != null)
             exitPromptUI.SetActive(true);
 
         UpdatePromptText(0f);
+    }
+
+    void OnTriggerStay(Collider other)
+    {
+        if (!other.CompareTag("Player")) return;
+        playerInside = true;
+
+        if (_playerMovement == null)
+            _playerMovement = other.GetComponent<GamePlayerMovement>() ?? other.GetComponentInParent<GamePlayerMovement>();
     }
 
     void OnTriggerExit(Collider other)
@@ -142,32 +198,55 @@ public class ExitPoint : MonoBehaviour
         }
     }
 
-    IEnumerator TriggerExit()
+    public void ShowWin()
     {
-        // Brief pause so the player sees the bar fill
-        yield return new WaitForSeconds(0.3f);
+        loading = true;
+        Time.timeScale = 0f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
 
-        // Hide the prompt
-        if (exitPromptUI != null)
-            exitPromptUI.SetActive(false);
+        GameOverManager.EnsureEventSystemInputModule();
 
-
-
-            
-        if (showLevelCompleteUI && LevelCompleteManager.Instance != null)
+        if (winMenu != null)
         {
-            // Show Level Complete screen
+            // Ensure parent Canvas is active
+            Canvas parentCanvas = winMenu.GetComponentInParent<Canvas>(true);
+            if (parentCanvas != null)
+                parentCanvas.gameObject.SetActive(true);
+
+            winMenu.SetActive(true);
+
+            // Wire buttons inside winMenu
+            Button[] buttons = winMenu.GetComponentsInChildren<Button>(true);
+            foreach (var btn in buttons)
+            {
+                btn.interactable = true;
+                string btnName = btn.name.ToLower();
+                if (btnName.Contains("next") || btnName.Contains("sector") || btnName.Contains("continue"))
+                {
+                    btn.onClick.RemoveAllListeners();
+                    btn.onClick.AddListener(() =>
+                    {
+                        Time.timeScale = 1f;
+                        SceneManager.LoadScene(string.IsNullOrEmpty(nextSceneName) ? "Level2Scene" : nextSceneName);
+                    });
+                }
+                else if (btnName.Contains("menu") || btnName.Contains("main"))
+                {
+                    btn.onClick.RemoveAllListeners();
+                    btn.onClick.AddListener(() =>
+                    {
+                        Time.timeScale = 1f;
+                        SceneManager.LoadScene("MainMenuScene");
+                    });
+                }
+            }
+        }
+        else if (LevelCompleteManager.Instance != null)
+        {
             LevelCompleteManager.Instance.nextSceneName = nextSceneName;
             LevelCompleteManager.Instance.Show(starsEarned, objectiveCurrent, objectiveTotal);
         }
-        else
-        {
-            // Fallback: load next scene directly
-            Time.timeScale = 1f;
-            SceneManager.LoadScene(nextSceneName);
-        }
-
-        
     }
 
     // ── Editor gizmo ───────────────────────────────────────────────────────
