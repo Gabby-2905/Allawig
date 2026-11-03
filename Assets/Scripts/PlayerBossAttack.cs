@@ -15,10 +15,10 @@ public class PlayerBossAttack : MonoBehaviour
     public float punchDamage    = 20f;
 
     [Tooltip("How far in front of the player the punch reaches.")]
-    public float punchRange     = 3.5f;
+    public float punchRange     = 5.5f;
 
     [Tooltip("Half-angle of the punch cone (degrees). 60 = 120° arc in front.")]
-    public float punchAngle     = 60f;
+    public float punchAngle     = 85f;
 
     [Tooltip("Cooldown between registering hits (prevents multi-hit per swing).")]
     public float hitCooldown    = 0.5f;
@@ -74,13 +74,24 @@ public class PlayerBossAttack : MonoBehaviour
     {
         if (_boss == null) return;
 
-        Vector3 toBoss = _boss.transform.position - transform.position;
-        float   dist   = toBoss.magnitude;
+        Collider bossCol = _boss.GetComponent<Collider>();
+        Vector3 playerPos = transform.position;
+        Vector3 closestPoint = bossCol != null ? bossCol.ClosestPoint(playerPos) : _boss.transform.position;
 
-        if (dist > punchRange) return;
+        // Measure distance from player to the closest point of the boss's collider
+        float distToSurface = Vector3.Distance(playerPos, closestPoint);
+        float distToCenter  = Vector3.Distance(playerPos, _boss.transform.position);
+        float effectiveDist = Mathf.Min(distToSurface, distToCenter);
 
-        // Check if boss is within the punch cone (in front of player)
-        float angle = Vector3.Angle(transform.forward, toBoss.normalized);
+        if (effectiveDist > punchRange) return;
+
+        // Check horizontal angle in front of player (flat XZ plane to prevent height false-negatives)
+        Vector3 toBoss = _boss.transform.position - playerPos;
+        toBoss.y = 0f;
+        Vector3 forward = transform.forward;
+        forward.y = 0f;
+
+        float angle = toBoss.sqrMagnitude > 0.001f ? Vector3.Angle(forward, toBoss) : 0f;
         if (angle > punchAngle) return;
 
         // Hit!
@@ -88,7 +99,7 @@ public class PlayerBossAttack : MonoBehaviour
         _boss.TakeDamage(punchDamage);
 
         Debug.Log($"[PlayerBossAttack] Punched Mr Pebble for {punchDamage} dmg! " +
-                  $"(dist={dist:F1}, angle={angle:F1}°)" +
+                  $"(dist={effectiveDist:F1}, angle={angle:F1}°)" +
                   (_boss.currentState == MrPebbleBoss.BossState.Vulnerable ? " [VULNERABLE – 2× dmg applied by boss]" : ""));
     }
 
