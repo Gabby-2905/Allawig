@@ -304,13 +304,18 @@ public class GamePlayerMovement : MonoBehaviour
 
     void TriggerPunch()
     {
-        if (animator == null) return;
-        // Alternate left / right punch each click
-        if (_nextPunchIsLeft)
-            animator.SetTrigger("PunchLeft");
-        else
-            animator.SetTrigger("PunchRight");
-        _nextPunchIsLeft = !_nextPunchIsLeft;
+        if (animator != null)
+        {
+            // Alternate left / right punch each click
+            if (_nextPunchIsLeft)
+                animator.SetTrigger("PunchLeft");
+            else
+                animator.SetTrigger("PunchRight");
+            _nextPunchIsLeft = !_nextPunchIsLeft;
+        }
+
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayPunchGruntSFX(transform.position);
     }
 
     void TriggerShoot()
@@ -517,6 +522,10 @@ else
     public void TakeDamage(float amount)
     {
         currentHealth = Mathf.Clamp(currentHealth - amount, 0f, maxHealth);
+
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayHurtSFX(transform.position);
+
         if (currentHealth <= 0f)
         {
             GameOverManager gom = FindFirstObjectByType<GameOverManager>();

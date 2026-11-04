@@ -36,9 +36,32 @@ public class EnemyAI : MonoBehaviour
 
     private EnemyState currentState = EnemyState.Wandering;
 
-    void Start()
+    void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        if (agent != null)
+        {
+            agent.baseOffset = 0f;
+        }
+
+        CapsuleCollider col = GetComponent<CapsuleCollider>();
+        if (col == null)
+            col = gameObject.AddComponent<CapsuleCollider>();
+
+        col.center = new Vector3(0f, 0.9f, 0f);
+        col.height = 1.8f;
+        col.radius = 0.35f;
+    }
+
+    void Start()
+    {
+        if (agent == null)
+            agent = GetComponent<NavMeshAgent>();
+        if (agent != null)
+            agent.baseOffset = 0f;
+
+        if (animator == null)
+            animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
 
         startingPosition = transform.position;
 
@@ -157,6 +180,10 @@ public class EnemyAI : MonoBehaviour
         {
             stun.Stun(1f);
         }
+
+        // Punch grunt SFX
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayPunchGruntSFX(transform.position);
 
         // Run away after punching
         RetreatFromPlayer();

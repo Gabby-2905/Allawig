@@ -83,6 +83,19 @@ public class NPCStateMachine : MonoBehaviour
     {
         _agent    = GetComponent<NavMeshAgent>();
         _animator = GetComponent<Animator>();
+
+        if (_agent != null)
+        {
+            _agent.baseOffset = 0f;
+        }
+
+        CapsuleCollider col = GetComponent<CapsuleCollider>();
+        if (col != null)
+        {
+            col.center = new Vector3(0f, 0.9f, 0f);
+            col.height = 1.8f;
+            col.radius = 0.35f;
+        }
     }
 
     void Start()
@@ -321,6 +334,9 @@ public class NPCStateMachine : MonoBehaviour
     {
         if (_animator != null)
             _animator.SetTrigger(HashAttack);
+
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayPunchGruntSFX(transform.position);
 
         if (_playerMovement != null)
             _playerMovement.TakeDamage(attackDamage);

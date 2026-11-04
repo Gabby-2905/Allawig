@@ -138,6 +138,12 @@ public class ExitPoint : MonoBehaviour
                 bhbScript.gameObject.SetActive(true);
                 bhbScript.Show();
             }
+
+            // Play Boss BGM
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayBossMusic();
+            }
         }
         else // Player has gas (boss defeated), entering exit 1 triggers win!
         {
@@ -206,6 +212,11 @@ public class ExitPoint : MonoBehaviour
         Cursor.visible = true;
 
         GameOverManager.EnsureEventSystemInputModule();
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayWinMusic();
+        }
 
         if (winMenu != null)
         {

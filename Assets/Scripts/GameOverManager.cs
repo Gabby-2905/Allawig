@@ -171,6 +171,11 @@ public class GameOverManager : MonoBehaviour
 
         EnsureEventSystemInputModule();
 
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayLoseMusic();
+        }
+
         // Pause timer
         if (gameTimer != null)
             gameTimer.PauseTimer();

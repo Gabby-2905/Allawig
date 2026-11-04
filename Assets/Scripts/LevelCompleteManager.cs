@@ -114,6 +114,11 @@ public class LevelCompleteManager : MonoBehaviour
 
         GameOverManager.EnsureEventSystemInputModule();
 
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayWinMusic();
+        }
+
         // Update objective text
         if (objectiveText != null)
             objectiveText.text = $"{objectiveLabel}  {objectiveCurrent}/{objectiveTotal}";

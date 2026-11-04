@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
-using TMPro;
 
 /// <summary>
 /// Mr Pebble Boss AI
@@ -57,11 +56,6 @@ public class MrPebbleBoss : MonoBehaviour
     [Header("Rotation")]
     public Vector3 rotationOffset = new Vector3(-90f, 0f, 0f);
 
-    // ── Dialogue ───────────────────────────────────────────────────────────
-    [Header("Dialogue")]
-    public GameObject dialogueBubblePrefab;
-    public float dialogueDisplayTime = 2.5f;
-
     // ── References ─────────────────────────────────────────────────────────
     [Header("References")]
     public BossHealthBar healthBar;
@@ -82,8 +76,6 @@ public class MrPebbleBoss : MonoBehaviour
     private bool  _isDead      = false;
 
     private GameObject       _warningCircle;
-    private GameObject       _dialogueBubble;
-    private TextMeshProUGUI  _dialogueText;
 
     // ── Unity ──────────────────────────────────────────────────────────────
     void Awake()
@@ -145,7 +137,6 @@ public class MrPebbleBoss : MonoBehaviour
         _agent.radius           = 0.55f;
 
         CreateWarningIndicator();
-        CreateDialogueBubble();
 
         if (healthBar != null)
         {
@@ -233,7 +224,9 @@ public class MrPebbleBoss : MonoBehaviour
         else
             transform.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
 
-        ShowDialogue("TIKMAN MO ITO!");
+        // Voiceline on move
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayBossVoiceline(transform.position);
 
         Vector3 origScale = transform.localScale;
         float elapsed = 0f;
@@ -324,7 +317,9 @@ public class MrPebbleBoss : MonoBehaviour
         _agent.isStopped = true;
         _agent.velocity  = Vector3.zero;
 
-        ShowDialogue("WALANG TAKAS!");
+        // Voiceline on move
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayBossVoiceline(transform.position);
 
         Vector3 origScale = transform.localScale;
         float elapsed = 0f;
@@ -436,7 +431,6 @@ public class MrPebbleBoss : MonoBehaviour
     IEnumerator EnterVulnerable()
     {
         currentState = BossState.Vulnerable;
-        ShowDialogue("Aray! Napalo ako sa pader...");
         Debug.Log("[MrPebble] VULNERABLE! Attack now!");
 
         var rend = GetComponent<Renderer>();
@@ -483,6 +477,10 @@ public class MrPebbleBoss : MonoBehaviour
         currentHealth -= amount;
         currentHealth  = Mathf.Max(0f, currentHealth);
 
+        // Play hurt SFX when boss takes damage
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayHurtSFX(transform.position);
+
         if (healthBar != null) healthBar.UpdateHealth(currentHealth, maxHealth);
 
         Debug.Log($"[MrPebble] Took {amount} dmg. HP: {currentHealth}/{maxHealth}" +
@@ -522,7 +520,6 @@ public class MrPebbleBoss : MonoBehaviour
         if (healthBar != null)
             healthBar.Hide();
 
-        ShowDialogue("May kailangan lang akong harapin na mas mataas na usapin.\nHindi pa rito nagtatapos ang laban natin!");
         Debug.Log("[MrPebble] DEFEATED!");
 
         float t = 0f;
@@ -541,25 +538,11 @@ public class MrPebbleBoss : MonoBehaviour
             Debug.Log("[MrPebble] Player teleported back to (0, 1, 0)!");
         }
 
+        // Switch back to Level 1 BGM after defeating boss and returning
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayLevel1Music();
+
         Destroy(gameObject);
-    }
-
-    void ShowDialogue(string text)
-    {
-        if (_dialogueText != null)
-        {
-            StopCoroutine("HideDialogue");
-            _dialogueText.text = text;
-            _dialogueBubble.SetActive(true);
-            StartCoroutine(HideDialogue());
-        }
-        Debug.Log($"[MrPebble] \"{text}\"");
-    }
-
-    IEnumerator HideDialogue()
-    {
-        yield return new WaitForSeconds(dialogueDisplayTime);
-        if (_dialogueBubble != null) _dialogueBubble.SetActive(false);
     }
 
     void FaceTarget(Vector3 target, float turnSpeed = 8f)
@@ -597,47 +580,6 @@ public class MrPebbleBoss : MonoBehaviour
             _warningCircle.GetComponent<Renderer>().material = mat;
         }
         _warningCircle.SetActive(false);
-    }
-
-    void CreateDialogueBubble()
-    {
-        if (dialogueBubblePrefab != null)
-        {
-            _dialogueBubble = Instantiate(dialogueBubblePrefab, transform);
-            _dialogueText   = _dialogueBubble.GetComponentInChildren<TextMeshProUGUI>();
-            _dialogueBubble.SetActive(false);
-            return;
-        }
-
-        _dialogueBubble = new GameObject("MrPebbleDialogue");
-        _dialogueBubble.transform.SetParent(transform);
-        _dialogueBubble.transform.localPosition = new Vector3(0f, 1.5f, 0f);
-        _dialogueBubble.transform.localScale    = new Vector3(0.008f, 0.008f, 0.008f);
-
-        var canvas = _dialogueBubble.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.WorldSpace;
-
-        var bg    = new GameObject("BG");
-        bg.transform.SetParent(_dialogueBubble.transform, false);
-        var bgImg = bg.AddComponent<UnityEngine.UI.Image>();
-        bgImg.color = new Color(0f, 0f, 0f, 0.78f);
-        var bgRT  = bg.GetComponent<RectTransform>();
-        bgRT.sizeDelta = new Vector2(520, 130);
-
-        var textGO = new GameObject("Text");
-        textGO.transform.SetParent(bg.transform, false);
-        _dialogueText = textGO.AddComponent<TextMeshProUGUI>();
-        _dialogueText.fontSize  = 28;
-        _dialogueText.color     = Color.white;
-        _dialogueText.alignment = TextAlignmentOptions.Center;
-        _dialogueText.enableWordWrapping = true;
-        var tRT = textGO.GetComponent<RectTransform>();
-        tRT.anchorMin = Vector2.zero;
-        tRT.anchorMax = Vector2.one;
-        tRT.offsetMin = new Vector2(10, 10);
-        tRT.offsetMax = new Vector2(-10, -10);
-
-        _dialogueBubble.SetActive(false);
     }
 
     void OnDrawGizmosSelected()
