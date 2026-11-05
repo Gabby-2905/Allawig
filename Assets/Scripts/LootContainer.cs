@@ -59,6 +59,10 @@ public class LootContainer : MonoBehaviour
         if (LootTaskManager.Instance != null)
             LootTaskManager.Instance.RegisterLoot();
 
+        // Add to Inventory
+        if (InventoryUI.Instance != null)
+            InventoryUI.Instance.AddItem(string.IsNullOrEmpty(containerName) ? "Supply Crate" : containerName, 1);
+
         Debug.Log($"[LootContainer] {containerName} has been looted!");
     }
 

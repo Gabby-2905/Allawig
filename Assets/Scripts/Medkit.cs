@@ -42,6 +42,12 @@ public class Medkit : MonoBehaviour
             Debug.Log($"[Medkit] Restored {healAmount} HP! Current HP: {player.currentHealth}/{player.maxHealth}");
         }
 
+        // Record medkit in inventory
+        if (InventoryUI.Instance != null)
+        {
+            InventoryUI.Instance.AddItem("Medkit", 1);
+        }
+
         // Play audio if available
         float soundDelay = 0f;
         if (audioSource != null && healSoundClip != null)

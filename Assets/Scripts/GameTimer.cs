@@ -52,6 +52,15 @@ public class GameTimer : MonoBehaviour
             isRunning = false;
             UpdateDisplay();
             OnTimeUp?.Invoke();
+
+            // Direct fallback: call GameOverManager even if the event subscription
+            // was missed due to a singleton conflict at scene load.
+            GameOverManager gom = GameOverManager.Instance;
+            if (gom == null)
+                gom = FindFirstObjectByType<GameOverManager>();
+            if (gom != null)
+                gom.TriggerTimeUp();
+
             return;
         }
 

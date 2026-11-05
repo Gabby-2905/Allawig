@@ -72,6 +72,16 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    public void SetMusicVolume(float volume)
+    {
+        CurrentMusicVolume = volume;
+    }
+
+    public void SetEffectsVolume(float volume)
+    {
+        CurrentEffectsVolume = volume;
+    }
+
     void Awake()
     {
         if (_instance == null)

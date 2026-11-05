@@ -56,6 +56,9 @@ public class MrPebbleBoss : MonoBehaviour
     [Header("Rotation")]
     public Vector3 rotationOffset = new Vector3(-90f, 0f, 0f);
 
+    [Header("Animation")]
+    public Animator animator;
+
     // ── References ─────────────────────────────────────────────────────────
     [Header("References")]
     public BossHealthBar healthBar;
@@ -81,12 +84,18 @@ public class MrPebbleBoss : MonoBehaviour
     void Awake()
     {
         _agent = GetComponent<NavMeshAgent>();
+        if (animator == null)
+            animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
+        if (animator != null)
+            animator.applyRootMotion = false;
         currentHealth = maxHealth;
         AdjustHitboxForRotation();
     }
 
     void OnValidate()
     {
+        if (animator == null)
+            animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
         AdjustHitboxForRotation();
     }
 
@@ -100,7 +109,15 @@ public class MrPebbleBoss : MonoBehaviour
         if (col == null) return;
 
         col.radius = 0.55f;
-        col.height = 4f;
+        col.height = 3.6f;
+
+        if (animator != null)
+        {
+            // Upright character model
+            col.direction = 1; // Y-axis
+            col.center = new Vector3(0f, 1.8f, 0f);
+            return;
+        }
 
         float pitch = transform.localEulerAngles.x;
         bool isPitched90 = Mathf.Abs(Mathf.DeltaAngle(pitch, -90f)) < 30f;
@@ -156,6 +173,15 @@ public class MrPebbleBoss : MonoBehaviour
     {
         if (_isDead || _player == null) return;
         if (!_agent.isOnNavMesh)        return;
+
+        // Drive movement animation
+        if (animator != null)
+        {
+            float speed = (_agent != null && _agent.hasPath && !_agent.isStopped) ? _agent.velocity.magnitude : 0f;
+            animator.SetFloat("Speed", speed);
+            animator.SetBool("isMoving", speed > 0.1f);
+        }
+
         if (_isActing)                  return;
 
         _slamTimer   -= Time.deltaTime;
@@ -182,9 +208,17 @@ public class MrPebbleBoss : MonoBehaviour
     {
         if (_isDead) return;
 
-        // Still locked at -90 on X when moving/chasing, 0 on X when slamming
-        float targetPitch = (currentState == BossState.BatoSlam) ? 0f : -90f;
-        transform.rotation = Quaternion.Euler(targetPitch, transform.eulerAngles.y, 0f);
+        if (animator != null)
+        {
+            // Upright character model maintains 0 pitch on X
+            transform.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
+        }
+        else
+        {
+            // Still locked at -90 on X when moving/chasing, 0 on X when slamming
+            float targetPitch = (currentState == BossState.BatoSlam) ? 0f : -90f;
+            transform.rotation = Quaternion.Euler(targetPitch, transform.eulerAngles.y, 0f);
+        }
 
         AdjustHitboxForRotation();
     }
@@ -224,6 +258,13 @@ public class MrPebbleBoss : MonoBehaviour
         else
             transform.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
 
+        // Play Slam animation
+        if (animator != null)
+        {
+            animator.SetTrigger("Slam");
+            animator.SetTrigger("Attack");
+        }
+
         // Voiceline on move
         if (AudioManager.Instance != null)
             AudioManager.Instance.PlayBossVoiceline(transform.position);
@@ -258,6 +299,10 @@ public class MrPebbleBoss : MonoBehaviour
         }
         transform.localScale = origScale;
 
+        // End Dash animation
+        if (animator != null)
+            animator.SetBool("Dash", false);
+
         if (_warningCircle != null) _warningCircle.SetActive(false);
 
         Collider[] hits = Physics.OverlapSphere(slamTarget, slamRadius);
@@ -274,10 +319,11 @@ public class MrPebbleBoss : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f);
 
-        // Slam finished - return to Chase and -90 on X
+        // Slam finished - return to Chase
         currentState = BossState.Chase;
         _isActing    = false;
-        transform.rotation = Quaternion.Euler(-90f, transform.eulerAngles.y, 0f);
+        float postSlamPitch = (animator != null) ? 0f : -90f;
+        transform.rotation = Quaternion.Euler(postSlamPitch, transform.eulerAngles.y, 0f);
     }
 
     IEnumerator ShockwavePulse(Vector3 origin)
@@ -349,10 +395,15 @@ public class MrPebbleBoss : MonoBehaviour
         if (chargeDir.sqrMagnitude > 0.001f)
         {
             float launchYaw = Mathf.Atan2(chargeDir.x, chargeDir.z) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.Euler(-90f, launchYaw, 0f);
+            float launchPitch = (animator != null) ? 0f : -90f;
+            transform.rotation = Quaternion.Euler(launchPitch, launchYaw, 0f);
         }
 
         _agent.enabled = false;
+
+        // Play Dash Attack animation (speeding up run)
+        if (animator != null)
+            animator.SetBool("Dash", true);
 
         float distToPlayer = _player != null ? Vector3.Distance(transform.position, _player.position) : 10f;
         float actualChargeDistance = Mathf.Max(chargeDistance, distToPlayer + 8f);
@@ -406,6 +457,10 @@ public class MrPebbleBoss : MonoBehaviour
 
         transform.localScale = origScale;
 
+        // End Dash animation
+        if (animator != null)
+            animator.SetBool("Dash", false);
+
         NavMeshHit navHit;
         if (NavMesh.SamplePosition(transform.position, out navHit, 5f, NavMesh.AllAreas))
         {
@@ -433,6 +488,12 @@ public class MrPebbleBoss : MonoBehaviour
         currentState = BossState.Vulnerable;
         Debug.Log("[MrPebble] VULNERABLE! Attack now!");
 
+        if (animator != null)
+        {
+            animator.SetTrigger("Vulnerable");
+            animator.SetBool("isVulnerable", true);
+        }
+
         var rend = GetComponent<Renderer>();
         Color origColor = Color.white;
         if (rend != null)
@@ -445,6 +506,9 @@ public class MrPebbleBoss : MonoBehaviour
 
         if (rend != null)
             rend.material.color = origColor;
+
+        if (animator != null)
+            animator.SetBool("isVulnerable", false);
 
         _agent.isStopped = false;
         currentState     = BossState.Chase;
@@ -506,6 +570,8 @@ public class MrPebbleBoss : MonoBehaviour
     {
         _isDead      = true;
         currentState = BossState.Dead;
+        if (animator != null)
+            animator.SetTrigger("Die");
         if (_agent != null)
         {
             _agent.isStopped = true;
@@ -558,8 +624,8 @@ public class MrPebbleBoss : MonoBehaviour
                 ? targetYaw 
                 : Mathf.MoveTowardsAngle(currentYaw, targetYaw, turnSpeed * Time.deltaTime * 60f);
 
-            // Locked still at -90 on X when moving/chasing, 0 on X when slamming
-            float targetPitch = (currentState == BossState.BatoSlam) ? 0f : -90f;
+            // If using animator (upright model), pitch is always 0. Otherwise keep legacy -90 on X
+            float targetPitch = (animator != null) ? 0f : ((currentState == BossState.BatoSlam) ? 0f : -90f);
             transform.rotation = Quaternion.Euler(targetPitch, newYaw, 0f);
         }
     }

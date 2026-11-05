@@ -42,6 +42,14 @@ public class PlayerStun : MonoBehaviour
             anim.SetFloat("VelocityZ", 0f);
         }
 
+        // Deal 5 damage to player if not already dealt
+        GamePlayerMovement pm = GetComponent<GamePlayerMovement>();
+        PlayerHealth he = GetComponent<PlayerHealth>();
+        if (he != null)
+        {
+            he.TakeDamage(5);
+        }
+
         // Disable movement scripts so input is ignored
         foreach (MonoBehaviour script in movementScripts)
         {

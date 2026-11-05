@@ -1,4 +1,5 @@
 
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -17,6 +18,7 @@ public class EnemyAI : MonoBehaviour
 
     [Header("Combat")]
     public float punchCooldown = 2f;
+    public float punchDamage = 5f;
 
     [Header("References")]
     public Animator animator;
@@ -44,12 +46,19 @@ public class EnemyAI : MonoBehaviour
             agent.baseOffset = 0f;
         }
 
+        if (animator == null)
+            animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
+
+        if (animator != null)
+            animator.applyRootMotion = false;
+
         CapsuleCollider col = GetComponent<CapsuleCollider>();
         if (col == null)
             col = gameObject.AddComponent<CapsuleCollider>();
 
-        col.center = new Vector3(0f, 0.9f, 0f);
-        col.height = 1.8f;
+        col.isTrigger = true;
+        col.center = new Vector3(0f, 1f, 0f);
+        col.height = 1.6f;
         col.radius = 0.35f;
     }
 
@@ -65,6 +74,14 @@ public class EnemyAI : MonoBehaviour
 
         startingPosition = transform.position;
 
+        // Snap to NavMesh so NPCs don't float off-mesh
+        NavMeshHit navHit;
+        if (NavMesh.SamplePosition(transform.position, out navHit, 5f, NavMesh.AllAreas))
+        {
+            agent.Warp(navHit.position);
+            startingPosition = navHit.position;
+        }
+
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
 
         if (playerObject != null)
@@ -77,6 +94,21 @@ public class EnemyAI : MonoBehaviour
 
     void Update()
     {
+        // Update animator parameters based on current speed
+        if (animator != null)
+        {
+            float speed = 0f;
+            if (agent != null && !agent.isStopped)
+            {
+                speed = agent.velocity.magnitude;
+                // If pathfinding but velocity hasn't caught up yet, use desired speed
+                if (speed < 0.1f && agent.hasPath)
+                    speed = agent.speed;
+            }
+            animator.SetFloat("Speed", speed);
+            animator.SetBool("isMoving", speed > 0.1f);
+        }
+
         if (player == null)
             return;
 
@@ -172,9 +204,16 @@ public class EnemyAI : MonoBehaviour
         if (animator != null)
         {
             animator.SetTrigger("Punch");
+            animator.SetTrigger("Attack");
         }
 
-        PlayerStun stun = player.GetComponent<PlayerStun>();
+        GamePlayerMovement playerMovement = player != null ? player.GetComponent<GamePlayerMovement>() : null;
+        if (playerMovement != null)
+        {
+            playerMovement.TakeDamage(punchDamage);
+        }
+
+        PlayerStun stun = player != null ? player.GetComponent<PlayerStun>() : null;
 
         if (stun != null)
         {
@@ -185,7 +224,13 @@ public class EnemyAI : MonoBehaviour
         if (AudioManager.Instance != null)
             AudioManager.Instance.PlayPunchGruntSFX(transform.position);
 
-        // Run away after punching
+        // Delay retreat so attack animation visually plays before NPC runs away
+        StartCoroutine(DelayedRetreat(0.45f));
+    }
+
+    IEnumerator DelayedRetreat(float delay)
+    {
+        yield return new WaitForSeconds(delay);
         RetreatFromPlayer();
     }
 
