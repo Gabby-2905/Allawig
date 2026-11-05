@@ -704,7 +704,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   lootValue: 1
   audioSource: {fileID: 54438984}
-  lootCollectClip: {fileID: 8300000, guid: f5157e77c510194429fb3c8967bb6137, type: 3}
+  lootCollectClip: {fileID: 8300000, guid: 1c803d1ee3bf7174fb1eb85f4a48a39f, type: 3}
 --- !u!65 &54438986
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -8292,7 +8292,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -14.4, y: -8.7, z: 13.3}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 905981932}
@@ -8408,7 +8408,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   lootValue: 1
   audioSource: {fileID: 353812082}
-  lootCollectClip: {fileID: 8300000, guid: f5157e77c510194429fb3c8967bb6137, type: 3}
+  lootCollectClip: {fileID: 8300000, guid: 1c803d1ee3bf7174fb1eb85f4a48a39f, type: 3}
 --- !u!65 &353812084
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -8486,7 +8486,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 353812080}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: -3513087464221787526, guid: cd0bc4ba13cf41f43bd3ec83ebaef547, type: 3}
 --- !u!114 &353812087
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19208,7 +19208,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   lootValue: 1
   audioSource: {fileID: 898289747}
-  lootCollectClip: {fileID: 8300000, guid: f5157e77c510194429fb3c8967bb6137, type: 3}
+  lootCollectClip: {fileID: 8300000, guid: 1c803d1ee3bf7174fb1eb85f4a48a39f, type: 3}
 --- !u!65 &898289749
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -22144,7 +22144,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -94.5, y: -9.25, z: -22.7}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 905981932}
@@ -22260,7 +22260,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   lootValue: 1
   audioSource: {fileID: 1019742316}
-  lootCollectClip: {fileID: 8300000, guid: f5157e77c510194429fb3c8967bb6137, type: 3}
+  lootCollectClip: {fileID: 8300000, guid: 1c803d1ee3bf7174fb1eb85f4a48a39f, type: 3}
 --- !u!65 &1019742318
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -22338,7 +22338,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1019742314}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 3493291955490051683, guid: e8cf2c9f9fd815f4d9c3a9b89536df25, type: 3}
 --- !u!114 &1019742321
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26812,7 +26812,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -52.45, y: -9.25, z: 3.2}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 905981932}
@@ -26928,7 +26928,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   lootValue: 1
   audioSource: {fileID: 1256374766}
-  lootCollectClip: {fileID: 8300000, guid: f5157e77c510194429fb3c8967bb6137, type: 3}
+  lootCollectClip: {fileID: 8300000, guid: 1c803d1ee3bf7174fb1eb85f4a48a39f, type: 3}
 --- !u!65 &1256374768
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -27006,7 +27006,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1256374764}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 2534964839176971238, guid: 97fd059a5a51c51449b625b93e82dcc2, type: 3}
 --- !u!114 &1256374771
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31713,7 +31713,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   lootValue: 1
   audioSource: {fileID: 1463894101}
-  lootCollectClip: {fileID: 8300000, guid: f5157e77c510194429fb3c8967bb6137, type: 3}
+  lootCollectClip: {fileID: 8300000, guid: 1c803d1ee3bf7174fb1eb85f4a48a39f, type: 3}
 --- !u!65 &1463894103
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -34224,7 +34224,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -88.1, y: -9.25, z: 5.4}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 905981932}
@@ -34340,7 +34340,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   lootValue: 1
   audioSource: {fileID: 1596153852}
-  lootCollectClip: {fileID: 8300000, guid: f5157e77c510194429fb3c8967bb6137, type: 3}
+  lootCollectClip: {fileID: 8300000, guid: 1c803d1ee3bf7174fb1eb85f4a48a39f, type: 3}
 --- !u!65 &1596153854
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -34418,7 +34418,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1596153850}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 6839132839120864523, guid: 40ea9a55ca9eb2c4ca8f67ebf3149589, type: 3}
 --- !u!114 &1596153857
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -37366,7 +37366,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   lootValue: 1
   audioSource: {fileID: 1746165101}
-  lootCollectClip: {fileID: 8300000, guid: f5157e77c510194429fb3c8967bb6137, type: 3}
+  lootCollectClip: {fileID: 8300000, guid: 1c803d1ee3bf7174fb1eb85f4a48a39f, type: 3}
 --- !u!65 &1746165103
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -40453,7 +40453,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   lootValue: 1
   audioSource: {fileID: 1895450050}
-  lootCollectClip: {fileID: 8300000, guid: f5157e77c510194429fb3c8967bb6137, type: 3}
+  lootCollectClip: {fileID: 8300000, guid: 1c803d1ee3bf7174fb1eb85f4a48a39f, type: 3}
 --- !u!65 &1895450052
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -44158,7 +44158,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -34.6, y: -9.25, z: 28.83}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 905981932}
@@ -44274,7 +44274,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   lootValue: 1
   audioSource: {fileID: 2085914905}
-  lootCollectClip: {fileID: 8300000, guid: f5157e77c510194429fb3c8967bb6137, type: 3}
+  lootCollectClip: {fileID: 8300000, guid: 1c803d1ee3bf7174fb1eb85f4a48a39f, type: 3}
 --- !u!65 &2085914907
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -44352,7 +44352,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2085914903}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 3116465286698040369, guid: 79eb76efde6988142ba8e1458b18d916, type: 3}
 --- !u!114 &2085914910
 MonoBehaviour:
   m_ObjectHideFlags: 0
